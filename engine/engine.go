@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"path"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -164,10 +165,37 @@ func (e *Engine) IsConfigred() bool {
 	return e.client != nil
 }
 
+// filterWebseedFromMagnet removes webseed URLs (ws=) and exact source (xs=) from magnet links
+// to prevent webseed-related panics in the torrent library
+func filterWebseedFromMagnet(magnetURI string) string {
+	// Split by '&' to get individual parameters
+	parts := strings.Split(magnetURI, "&")
+	var filteredParts []string
+
+	for _, part := range parts {
+		// Skip webseed parameters (ws=) and exact source (xs=) which may contain webseeds
+		if strings.HasPrefix(part, "ws=") || strings.HasPrefix(part, "ws%3D") ||
+			strings.HasPrefix(part, "xs=") || strings.HasPrefix(part, "xs%3D") {
+			continue
+		}
+		filteredParts = append(filteredParts, part)
+	}
+
+	return strings.Join(filteredParts, "&")
+}
+
 // NewMagnet -> newTorrentBySpec
 func (e *Engine) NewMagnet(magnetURI string) error {
 	log.Println("[NewMagnet] called:", magnetURI)
-	spec, err := torrent.TorrentSpecFromMagnetUri(magnetURI)
+
+	// Filter out webseed URLs from magnet link to prevent webseed-related panics
+	// Webseed URLs are specified with the 'ws=' parameter in magnet links
+	filteredURI := filterWebseedFromMagnet(magnetURI)
+	if filteredURI != magnetURI {
+		log.Println("[NewMagnet] filtered webseed URLs from magnet link")
+	}
+
+	spec, err := torrent.TorrentSpecFromMagnetUri(filteredURI)
 	if err != nil {
 		return err
 	}
@@ -182,6 +210,8 @@ func (e *Engine) NewTorrentByReader(r io.Reader) error {
 		return err
 	}
 	spec := torrent.TorrentSpecFromMetaInfo(info)
+	// Filter out webseeds from the spec
+	spec.Webseeds = nil
 	e.newTorrentCacheFile(info)
 	return e.newTorrentBySpec(spec, taskTorrent)
 }
@@ -202,8 +232,12 @@ func (e *Engine) NewTorrentByFilePath(path string) error {
 	if err != nil {
 		return err
 	}
+	// Strip webseeds from metainfo to prevent webseed-related panics
+	info.UrlList = nil
 	e.newTorrentCacheFile(info)
 	spec := torrent.TorrentSpecFromMetaInfo(info)
+	// Filter out webseeds from the spec
+	spec.Webseeds = nil
 	return e.newTorrentBySpec(spec, taskTorrent)
 }
 
@@ -219,6 +253,12 @@ func (e *Engine) isReadyAddTask() bool {
 func (e *Engine) newTorrentBySpec(spec *torrent.TorrentSpec, taskT taskType) error {
 	ih := spec.InfoHash.HexString()
 	log.Println("[newTorrentBySpec] called", ih)
+
+	// Filter out webseeds from the spec to prevent webseed-related panics
+	if len(spec.Webseeds) > 0 {
+		log.Printf("[newTorrentBySpec] filtering %d webseeds from torrent spec", len(spec.Webseeds))
+		spec.Webseeds = nil
+	}
 
 	e.taskMutex.Lock()
 	defer e.taskMutex.Unlock()
@@ -252,6 +292,20 @@ func (e *Engine) newTorrentBySpec(spec *torrent.TorrentSpec, taskT taskType) err
 }
 
 func (e *Engine) torrentEventProcessor(tt *torrent.Torrent, t *Torrent, ih string) {
+	// Track if we're exiting due to panic to prevent loop
+	var panicked bool
+	defer func() {
+		if r := recover(); r != nil {
+			log.Printf("[torrentEventProcessor] Recovered from panic for torrent %s: %+v", ih, r)
+			panicked = true
+			tt.Drop()
+			// Remove from cache to prevent restoration on next restart
+			e.RemoveCache(ih)
+			// Mark torrent as deleted without triggering wait list processing
+			e.waitList.Remove(ih)
+			e.deleteTorrent(ih)
+		}
+	}()
 
 	select {
 	case <-e.closeSync:
@@ -261,7 +315,9 @@ func (e *Engine) torrentEventProcessor(tt *torrent.Torrent, t *Torrent, ih strin
 	case <-t.dropWait:
 		tt.Drop()
 		log.Println("Task Dropped while waiting Info", ih)
-		go e.NextWaitTask() // nolint: errcheck
+		if !panicked {
+			go e.NextWaitTask() // nolint: errcheck
+		}
 		return
 	case <-tt.GotInfo():
 		// Already got full torrent info
@@ -284,20 +340,30 @@ func (e *Engine) torrentEventProcessor(tt *torrent.Torrent, t *Torrent, ih strin
 	for {
 		select {
 		case <-timeTk.C:
-			if !t.IsAllFilesDone {
-				t.updateFileStatus()
-			}
-			if !t.Done {
-				t.updateTorrentStatus()
-			}
-			if t.Started {
-				e.taskRoutine(t)
-			}
-			t.updateConnStat()
+			func() {
+				defer func() {
+					if r := recover(); r != nil {
+						log.Printf("[torrentEventProcessor] Recovered from panic in main loop for torrent %s: %+v", ih, r)
+						panicked = true
+					}
+				}()
+				if !t.IsAllFilesDone {
+					t.updateFileStatus()
+				}
+				if !t.Done {
+					t.updateTorrentStatus()
+				}
+				if t.Started {
+					e.taskRoutine(t)
+				}
+				t.updateConnStat()
+			}()
 		case <-t.dropWait:
 			tt.Drop()
 			log.Println("Task Droped, exit loop:", ih)
-			go e.NextWaitTask() // nolint: errcheck
+			if !panicked {
+				go e.NextWaitTask() // nolint: errcheck
+			}
 			return
 		case <-e.closeSync:
 			log.Println("Engine shutdown while downloading", ih)
