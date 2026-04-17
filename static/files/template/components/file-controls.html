@@ -1,0 +1,18 @@
+<span ng-if="!isdownloading(node.Name)" class="controls">
+  <div class="action-group primary">
+    <a ng-if="isfile()" ng-href="download/{{ node.$path | escape }}" title="Download file">
+      <i class="download icon"></i>
+    </a>
+    <a ng-if="!isfile()" ng-href="download/{{ node.$path | escape }}" title="Download folder">
+      <i class="file archive icon"></i>
+    </a>
+    <i ng-if="isfile()" ng-click="togglePreview()"
+      ng-class="previewIcon()" class="icon" title="Preview"></i>
+  </div>
+
+  <div class="action-group danger">
+    <i ng-show="!confirm" ng-click="preremove()" class="trash icon"></i>
+    <i ng-show="!deleting && confirm" ng-click="remove(node);" class="check icon"></i>
+    <i ng-show="deleting" class="notched circle loading icon"></i>
+  </div>
+</span>

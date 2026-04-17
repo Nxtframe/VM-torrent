@@ -14,6 +14,7 @@ import (
 )
 
 var VERSION = "0.0.0-src" //set with ldflags
+var BUILD_NUMBER = "dev" //set with ldflags
 
 func main() {
 	s := server.Server{
@@ -30,10 +31,11 @@ func main() {
 	o.Parse()
 
 	t := &server.TPLInfo{
-		Title:   s.Title,
-		Version: VERSION,
-		Runtime: fmt.Sprintf("%s %d bit", runtime.Version(), strconv.IntSize),
-		Uptime:  time.Now().Unix(),
+		Title:       s.Title,
+		Version:     VERSION,
+		Runtime:     fmt.Sprintf("%s %d bit", runtime.Version(), strconv.IntSize),
+		BuildNumber: BUILD_NUMBER,
+		Uptime:      time.Now().Unix(),
 	}
 
 	if s.DisableLogTime {

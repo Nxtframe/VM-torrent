@@ -104,6 +104,7 @@ type TPLInfo struct {
 	Title                 string
 	Version               string
 	Runtime               string
+	BuildNumber           string
 	AllowRuntimeConfigure bool
 }
 

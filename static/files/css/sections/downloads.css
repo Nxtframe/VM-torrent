@@ -2,26 +2,370 @@
 	text-align: center;
 }
 
-.downloads .ui.list .content {
+/* Modern file card design */
+.downloads .ui.list .item {
+	margin-bottom: 12px;
+}
+
+.downloads .file-card {
+	background: #ffffff;
+	border: 1px solid #e8e8e8;
+	border-radius: 12px;
+	padding: 16px;
+	transition: all 0.2s ease;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.downloads .file-card:hover {
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+	border-color: #d0d0d0;
+	transform: translateY(-1px);
+}
+
+.downloads .file-card-main {
+	display: flex;
+	align-items: flex-start;
+	gap: 16px;
+}
+
+.downloads .file-icon {
+	flex-shrink: 0;
+	width: 48px;
+	height: 48px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.downloads .file-icon i {
+	font-size: 32px;
+}
+
+.downloads .file-details {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.downloads .file-name-row {
+	display: flex;
+	align-items: baseline;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.downloads .header {
+	flex: 1;
+	min-width: 0;
+}
+
+.downloads .header a,
+.downloads .header span {
+	font-size: 16px;
+	font-weight: 500;
+	color: #1a1a1a;
+	word-break: break-word;
+}
+
+.downloads .header a:hover {
+	color: #2185d0;
+}
+
+.downloads .file-meta {
+	font-size: 13px;
+	color: #888;
+	white-space: nowrap;
+}
+
+.downloads .file-actions {
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.downloads .file-actions .controls {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.downloads .file-actions .controls .action-group {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	padding: 4px 8px;
+	border-radius: 8px;
+	background: #f8f9fa;
+	transition: background 0.2s ease;
+}
+
+.downloads .file-actions .controls .action-group:hover {
+	background: #e9ecef;
+}
+
+.downloads .file-actions .controls .action-group.primary i,
+.downloads .file-actions .controls .action-group.primary a {
+	color: #2185d0;
+}
+
+.downloads .file-actions .controls .action-group.danger i {
+	color: #e74c3c;
+}
+
+.downloads .file-actions .controls i,
+.downloads .file-actions .controls a {
+	font-size: 18px;
+	opacity: 0.8;
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+
+.downloads .file-actions .controls i:hover,
+.downloads .file-actions .controls a:hover {
+	opacity: 1;
+	transform: scale(1.15);
+}
+
+.downloads .preview video,
+.downloads .preview img,
+.downloads .preview audio {
+	margin-top: 12px;
+	max-width: 100%;
+	border-radius: 8px;
+}
+
+/* Netflix-style Video Player */
+.netflix-player-container {
+	background: #000;
+	border-radius: 12px;
+	overflow: hidden;
+	margin-top: 12px;
+	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+	position: relative;
 	width: 100%;
 }
 
-.downloads .ui.list .item .controls {
+.netflix-player-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 12px 16px;
+	background: linear-gradient(180deg, rgba(0,0,0,0.8) 0%, transparent 100%);
+	position: absolute;
+	z-index: 10;
+	top: 0; left: 0; right: 0;
 	opacity: 0;
-	transition: opacity .3s ease-in-out;
+	transition: opacity 0.3s ease;
+	pointer-events: none;
 }
 
-@media (max-width: 480px) {
-	.downloads .ui.list .item .controls {
-		opacity: 0.5;
-	}
-}
-
-.downloads .ui.list .item:hover > .content > .header > .controls {
+.netflix-player-container:hover .netflix-player-header {
 	opacity: 1;
+	pointer-events: all;
 }
 
-.downloads .preview video, .downloads .preview img, .downloads .preview audio {
-	margin-top: 5px;
-	max-width: 90%;
+.netflix-title {
+	color: #fff;
+	font-size: 15px;
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: calc(100% - 50px);
+	text-shadow: 0 1px 3px rgba(0,0,0,0.6);
+}
+
+.netflix-close {
+	background: rgba(255,255,255,0.15);
+	border: none;
+	color: #fff;
+	font-size: 20px;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.2s;
+}
+
+.netflix-close:hover {
+	background: rgba(229, 9, 20, 0.8);
+}
+
+/* Video.js Netflix Theme - FIXED */
+.video-js.vjs-netflix-theme {
+	width: 100% !important;
+	height: auto !important;
+	aspect-ratio: 16 / 9;
+	display: block;
+	background: #000;
+}
+
+.video-js.vjs-netflix-theme .vjs-tech {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+/* Big play button */
+.video-js.vjs-netflix-theme .vjs-big-play-button {
+	background: rgba(0,0,0,0.55);
+	border: 3px solid #fff;
+	border-radius: 50%;
+	width: 72px;
+	height: 72px;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	margin: 0;
+	line-height: 68px;
+	transition: all 0.2s ease;
+}
+
+.video-js.vjs-netflix-theme .vjs-big-play-button:hover {
+	background: rgba(229, 9, 20, 0.85);
+	border-color: #e50914;
+	transform: translate(-50%, -50%) scale(1.1);
+}
+
+/* Control bar */
+.video-js.vjs-netflix-theme .vjs-control-bar {
+	display: flex !important;
+	flex-direction: row;
+	align-items: center;
+	height: 52px;
+	padding: 0 8px;
+	background: linear-gradient(transparent, rgba(0,0,0,0.9));
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+
+/* Progress control takes all remaining space */
+.video-js.vjs-netflix-theme .vjs-progress-control {
+	position: relative !important;
+	top: auto !important;
+	flex: 1 1 auto;
+	display: flex;
+	align-items: center;
+	height: 100%;
+	padding: 0 8px;
+	min-width: 0;
+}
+
+.video-js.vjs-netflix-theme .vjs-progress-holder {
+	height: 4px;
+	margin: 0;
+	border-radius: 2px;
+	background: rgba(255,255,255,0.3);
+	flex: 1;
+	overflow: visible !important;
+}
+
+.video-js.vjs-netflix-theme .vjs-play-progress {
+	background: #e50914;
+	border-radius: 2px;
+	overflow: visible !important;
+}
+
+/* The scrubber dot */
+.video-js.vjs-netflix-theme .vjs-play-progress:before {
+	content: '';
+	position: absolute;
+	right: -6px;
+	top: 50%;
+	transform: translateY(-50%);
+	width: 13px;
+	height: 13px;
+	background: #e50914;
+	border-radius: 50%;
+	border: 2px solid #fff;
+	box-shadow: 0 0 4px rgba(0,0,0,0.5);
+}
+
+.video-js.vjs-netflix-theme .vjs-load-progress {
+	border-radius: 2px;
+	background: rgba(255,255,255,0.2);
+	overflow: visible !important;
+}
+
+/* Buttons - fixed size, no flex-shrink */
+.video-js.vjs-netflix-theme .vjs-play-control,
+.video-js.vjs-netflix-theme .vjs-mute-control,
+.video-js.vjs-netflix-theme .vjs-fullscreen-control,
+.video-js.vjs-netflix-theme .vjs-playback-rate {
+	flex: 0 0 auto;
+	width: 36px;
+	height: 36px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border-radius: 50%;
+	cursor: pointer;
+	transition: background 0.2s;
+	color: #fff;
+}
+
+.video-js.vjs-netflix-theme .vjs-play-control:hover,
+.video-js.vjs-netflix-theme .vjs-mute-control:hover,
+.video-js.vjs-netflix-theme .vjs-fullscreen-control:hover {
+	background: rgba(255,255,255,0.15);
+}
+
+.video-js.vjs-netflix-theme .vjs-button > .vjs-icon-placeholder:before {
+	font-size: 20px;
+	line-height: 36px;
+}
+
+/* Time display */
+.video-js.vjs-netflix-theme .vjs-time-control {
+	flex: 0 0 auto;
+	display: flex !important;
+	align-items: center;
+	font-size: 13px;
+	color: rgba(255,255,255,0.85);
+	padding: 0 2px;
+	line-height: 1;
+	min-width: unset;
+	white-space: nowrap;
+}
+
+.video-js.vjs-netflix-theme .vjs-time-divider {
+	min-width: unset;
+	padding: 0 2px;
+}
+
+/* Volume panel */
+.video-js.vjs-netflix-theme .vjs-volume-panel {
+	flex: 0 0 auto;
+	display: flex;
+	align-items: center;
+}
+
+.video-js.vjs-netflix-theme .vjs-volume-bar {
+	margin: 0 4px;
+}
+
+/* Playback rate button width */
+.video-js.vjs-netflix-theme .vjs-playback-rate {
+	width: auto;
+	padding: 0 6px;
+	font-size: 13px;
+}
+
+.video-js.vjs-netflix-theme .vjs-playback-rate .vjs-playback-rate-value {
+	font-size: 13px;
+	line-height: 36px;
+}
+
+.downloads .file-children {
+	margin-top: 12px;
+	padding-left: 16px;
+	border-left: 2px solid #e8e8e8;
 }
