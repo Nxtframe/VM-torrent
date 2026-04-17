@@ -137,8 +137,8 @@
 	border-radius: 8px;
 }
 
-/* Netflix-style Video Player */
-.netflix-player-container {
+/* Plyr Video Player Container */
+.plyr-player-container {
 	background: #000;
 	border-radius: 12px;
 	overflow: hidden;
@@ -148,7 +148,7 @@
 	width: 100%;
 }
 
-.netflix-player-header {
+.plyr-player-header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
@@ -162,12 +162,12 @@
 	pointer-events: none;
 }
 
-.netflix-player-container:hover .netflix-player-header {
+.plyr-player-container:hover .plyr-player-header {
 	opacity: 1;
 	pointer-events: all;
 }
 
-.netflix-title {
+.plyr-title {
 	color: #fff;
 	font-size: 15px;
 	font-weight: 500;
@@ -178,7 +178,7 @@
 	text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
 
-.netflix-close {
+.plyr-close {
 	background: rgba(255,255,255,0.15);
 	border: none;
 	color: #fff;
@@ -193,175 +193,21 @@
 	transition: background 0.2s;
 }
 
-.netflix-close:hover {
-	background: rgba(229, 9, 20, 0.8);
+.plyr-close:hover {
+	background: #e50914;
 }
 
-/* Video.js Netflix Theme - FIXED */
-.video-js.vjs-netflix-theme {
-	width: 100% !important;
-	height: auto !important;
+/* Plyr container sizing */
+.plyr-player-container .plyr {
+	width: 100%;
+	border-radius: 0;
+}
+
+.plyr-player-container .plyr video {
+	width: 100%;
+	height: auto;
 	aspect-ratio: 16 / 9;
 	display: block;
-	background: #000;
-}
-
-.video-js.vjs-netflix-theme .vjs-tech {
-	width: 100%;
-	height: 100%;
-	object-fit: contain;
-}
-
-/* Big play button */
-.video-js.vjs-netflix-theme .vjs-big-play-button {
-	background: rgba(0,0,0,0.55);
-	border: 3px solid #fff;
-	border-radius: 50%;
-	width: 72px;
-	height: 72px;
-	top: 50%;
-	left: 50%;
-	transform: translate(-50%, -50%);
-	margin: 0;
-	line-height: 68px;
-	transition: all 0.2s ease;
-}
-
-.video-js.vjs-netflix-theme .vjs-big-play-button:hover {
-	background: rgba(229, 9, 20, 0.85);
-	border-color: #e50914;
-	transform: translate(-50%, -50%) scale(1.1);
-}
-
-/* Control bar */
-.video-js.vjs-netflix-theme .vjs-control-bar {
-	display: flex !important;
-	flex-direction: row;
-	align-items: center;
-	height: 52px;
-	padding: 0 8px;
-	background: linear-gradient(transparent, rgba(0,0,0,0.9));
-	position: absolute;
-	bottom: 0;
-	left: 0;
-	right: 0;
-}
-
-/* Progress control takes all remaining space */
-.video-js.vjs-netflix-theme .vjs-progress-control {
-	position: relative !important;
-	top: auto !important;
-	flex: 1 1 auto;
-	display: flex;
-	align-items: center;
-	height: 100%;
-	padding: 0 8px;
-	min-width: 0;
-}
-
-.video-js.vjs-netflix-theme .vjs-progress-holder {
-	height: 4px;
-	margin: 0;
-	border-radius: 2px;
-	background: rgba(255,255,255,0.3);
-	flex: 1;
-	overflow: visible !important;
-}
-
-.video-js.vjs-netflix-theme .vjs-play-progress {
-	background: #e50914;
-	border-radius: 2px;
-	overflow: visible !important;
-}
-
-/* The scrubber dot */
-.video-js.vjs-netflix-theme .vjs-play-progress:before {
-	content: '';
-	position: absolute;
-	right: -6px;
-	top: 50%;
-	transform: translateY(-50%);
-	width: 13px;
-	height: 13px;
-	background: #e50914;
-	border-radius: 50%;
-	border: 2px solid #fff;
-	box-shadow: 0 0 4px rgba(0,0,0,0.5);
-}
-
-.video-js.vjs-netflix-theme .vjs-load-progress {
-	border-radius: 2px;
-	background: rgba(255,255,255,0.2);
-	overflow: visible !important;
-}
-
-/* Buttons - fixed size, no flex-shrink */
-.video-js.vjs-netflix-theme .vjs-play-control,
-.video-js.vjs-netflix-theme .vjs-mute-control,
-.video-js.vjs-netflix-theme .vjs-fullscreen-control,
-.video-js.vjs-netflix-theme .vjs-playback-rate {
-	flex: 0 0 auto;
-	width: 36px;
-	height: 36px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	border-radius: 50%;
-	cursor: pointer;
-	transition: background 0.2s;
-	color: #fff;
-}
-
-.video-js.vjs-netflix-theme .vjs-play-control:hover,
-.video-js.vjs-netflix-theme .vjs-mute-control:hover,
-.video-js.vjs-netflix-theme .vjs-fullscreen-control:hover {
-	background: rgba(255,255,255,0.15);
-}
-
-.video-js.vjs-netflix-theme .vjs-button > .vjs-icon-placeholder:before {
-	font-size: 20px;
-	line-height: 36px;
-}
-
-/* Time display */
-.video-js.vjs-netflix-theme .vjs-time-control {
-	flex: 0 0 auto;
-	display: flex !important;
-	align-items: center;
-	font-size: 13px;
-	color: rgba(255,255,255,0.85);
-	padding: 0 2px;
-	line-height: 1;
-	min-width: unset;
-	white-space: nowrap;
-}
-
-.video-js.vjs-netflix-theme .vjs-time-divider {
-	min-width: unset;
-	padding: 0 2px;
-}
-
-/* Volume panel */
-.video-js.vjs-netflix-theme .vjs-volume-panel {
-	flex: 0 0 auto;
-	display: flex;
-	align-items: center;
-}
-
-.video-js.vjs-netflix-theme .vjs-volume-bar {
-	margin: 0 4px;
-}
-
-/* Playback rate button width */
-.video-js.vjs-netflix-theme .vjs-playback-rate {
-	width: auto;
-	padding: 0 6px;
-	font-size: 13px;
-}
-
-.video-js.vjs-netflix-theme .vjs-playback-rate .vjs-playback-rate-value {
-	font-size: 13px;
-	line-height: 36px;
 }
 
 .downloads .file-children {

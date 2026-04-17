@@ -100,34 +100,23 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
 
   $scope.initVideoPlayer = function (videoId, autoplay) {
     var videoElement = document.getElementById(videoId);
-    if (videoElement && typeof videojs !== 'undefined') {
-      return videojs(videoElement, {
+    if (videoElement && typeof Plyr !== 'undefined') {
+      var player = new Plyr(videoElement, {
         autoplay: autoplay,
-        controls: true,
-        responsive: false,
-        fluid: false,
-        fill: false,
-        playbackRates: [0.5, 1, 1.25, 1.5, 2],
-        controlBar: {
-          children: [
-            'playToggle',
-            'volumePanel',
-            'currentTimeDisplay',
-            'timeDivider',
-            'durationDisplay',
-            'progressControl',
-            'playbackRateMenuButton',
-            'fullscreenToggle'
-          ]
-        }
+        controls: ['play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen'],
+        settings: ['speed', 'quality'],
+        speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+        hideControls: false,
+        resetOnEnd: false
       });
+      return player;
     }
     return null;
   };
 
   $scope.toggleTheaterMode = function () {
-    var wasPlaying = $scope.videoPlayer && !$scope.videoPlayer.paused();
-    var currentTime = $scope.videoPlayer ? $scope.videoPlayer.currentTime() : 0;
+    var wasPlaying = $scope.videoPlayer && !$scope.videoPlayer.paused;
+    var currentTime = $scope.videoPlayer ? $scope.videoPlayer.currentTime : 0;
 
     $scope.theaterMode = !$scope.theaterMode;
 
@@ -139,7 +128,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
       $timeout(function () {
         $scope.theaterVideoPlayer = $scope.initVideoPlayer($scope.getTheaterVideoPlayerId(), false);
         if ($scope.theaterVideoPlayer) {
-          $scope.theaterVideoPlayer.currentTime(currentTime);
+          $scope.theaterVideoPlayer.currentTime = currentTime;
           if (wasPlaying) {
             $scope.theaterVideoPlayer.play();
           }
@@ -148,11 +137,11 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
     } else {
       // Pause theater player, resume inline player
       if ($scope.theaterVideoPlayer) {
-        currentTime = $scope.theaterVideoPlayer.currentTime();
+        currentTime = $scope.theaterVideoPlayer.currentTime;
         $scope.theaterVideoPlayer.pause();
       }
       if ($scope.videoPlayer) {
-        $scope.videoPlayer.currentTime(currentTime);
+        $scope.videoPlayer.currentTime = currentTime;
         if (wasPlaying) {
           $scope.videoPlayer.play();
         }
@@ -165,18 +154,18 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
     if (!$scope.showPreview) {
       $scope.theaterMode = false;
       if ($scope.theaterVideoPlayer) {
-        $scope.theaterVideoPlayer.dispose();
+        $scope.theaterVideoPlayer.destroy();
         $scope.theaterVideoPlayer = null;
       }
     }
 
-    // Initialize Video.js for video files
+    // Initialize Plyr for video files
     if ($scope.showPreview && $scope.videoPreview) {
       $timeout(function () {
         $scope.videoPlayer = $scope.initVideoPlayer($scope.getVideoPlayerId(), true);
       }, 100);
     } else if (!$scope.showPreview && $scope.videoPlayer) {
-      $scope.videoPlayer.dispose();
+      $scope.videoPlayer.destroy();
       $scope.videoPlayer = null;
     }
   };

@@ -4,16 +4,14 @@
   </audio>
   <img ng-if="imagePreview" ng-src="{{ showPreview ? ('download/'+(node.$path | escape)) : '' }}">
 
-  <!-- Netflix-style Video.js Player -->
-  <div ng-if="videoPreview" class="netflix-player-container">
-    <div class="netflix-player-header">
-      <span class="netflix-title">{{ node.Name }}</span>
-      <button class="netflix-close" ng-click="togglePreview()">×</button>
+  <!-- Plyr Video Player -->
+  <div ng-if="videoPreview" class="plyr-player-container">
+    <div class="plyr-player-header">
+      <span class="plyr-title">{{ node.Name }}</span>
+      <button class="plyr-close" ng-click="togglePreview()">×</button>
     </div>
-    <video ng-attr-id="{{ getVideoPlayerId() }}" class="video-js vjs-big-play-centered vjs-netflix-theme"
-           controls preload="auto" data-setup='{}'>
+    <video ng-attr-id="{{ getVideoPlayerId() }}" class="plyr" playsinline controls>
       <source ng-src="{{ showPreview ? ('download/'+(node.$path|escape)) : '' }}" type="video/mp4">
-      <p class="vjs-no-js">To view this video please enable JavaScript.</p>
     </video>
   </div>
 </div>

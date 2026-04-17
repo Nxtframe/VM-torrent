@@ -9,7 +9,7 @@
 	<link rel="stylesheet" type="text/css" href="[[.Version]]/css/sections/torrents.css">
 	<link rel="stylesheet" type="text/css" href="[[.Version]]/css/sections/downloads.css">
 	<link rel="stylesheet" type="text/css" href="[[.Version]]/css/app.css">
-	<link href="https://vjs.zencdn.net/8.6.1/video-js.css" rel="stylesheet" />
+	<link rel="stylesheet" href="https://cdn.plyr.io/3.7.8/plyr.css" />
 	<link rel="icon" href="cloud-favicon.png" type="image/x-icon" />
 </head>
 
@@ -35,6 +35,7 @@
 			</h2>
 			<div class="status">
 				<span class="build-number">Build #[[.BuildNumber]]</span>
+			
 				<i ng-show="apiing" class="ui circular loading repeat icon"></i>
 				<i ng-if="state.LatestRSSGuid != ''" ng-click="toggleSections('rss')"
 					class="ui circular rss square icon"
@@ -113,7 +114,7 @@
 	<script src="js/vendor/angular.min.js"></script>
 	<script src="js/vendor/moment.min.js"></script>
 	<script src="js/velox.js"></script>
-	<script src="https://vjs.zencdn.net/8.6.1/video.min.js"></script>
+	<script src="https://cdn.plyr.io/3.7.8/plyr.js"></script>
 	<script type="text/javascript">
 		window.app = window.angular.module('app', []);
 	</script>
