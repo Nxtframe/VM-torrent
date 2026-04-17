@@ -146,6 +146,7 @@
 	box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
 	position: relative;
 	width: 100%;
+	container-type: inline-size;
 }
 
 .plyr-player-header {
@@ -174,9 +175,32 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	max-width: calc(100% - 50px);
+	max-width: calc(100% - 100px);
 	text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
+
+.plyr-header-buttons {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.plyr-theater {
+	background: rgba(255,255,255,0.15);
+	border: none;
+	color: #fff;
+	font-size: 16px;
+	width: 32px;
+	height: 32px;
+	border-radius: 50%;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	transition: background 0.2s;
+}
+
+
 
 .plyr-close {
 	background: rgba(255,255,255,0.15);
@@ -208,6 +232,22 @@
 	height: auto;
 	aspect-ratio: 16 / 9;
 	display: block;
+}
+
+/* When player container is narrow (file list view), move progress to top */
+@container (max-width: 500px) {
+	.plyr-player-container .plyr__progress {
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		padding: 8px 12px 12px;
+		z-index: 20;
+	}
+
+	.plyr-player-container .plyr__controls {
+		padding-top: 20px;
+	}
 }
 
 .downloads .file-children {
