@@ -5,13 +5,30 @@
   <img ng-if="imagePreview" ng-src="{{ showPreview ? ('download/'+(node.$path | escape)) : '' }}">
 
   <!-- Plyr Video Player -->
-  <div ng-if="videoPreview" class="plyr-player-container">
+  <div ng-if="videoPreview" class="plyr-player-container" ng-class="{'theater-active': theaterActive}">
     <div class="plyr-player-header">
-      <span class="plyr-title">{{ node.Name }}</span>
-      <button class="plyr-close" ng-click="togglePreview()">×</button>
+      <div class="plyr-header-left">
+       
+        <span class="plyr-title">{{ node.Name }}</span>
+
+      </div>
+      <div class="plyr-header-buttons">
+        <button class="plyr-theater" ng-click="toggleTheater()" title="Toggle Theater Mode"><i class="expand icon"></i></button>
+        <button class="plyr-close" ng-click="togglePreview()">×</button>
+      </div>
     </div>
-    <video ng-attr-id="{{ getVideoPlayerId() }}" class="plyr" playsinline controls>
-      <source ng-src="{{ showPreview ? ('download/'+(node.$path|escape)) : '' }}" type="video/mp4">
-    </video>
+    <div class="plyr-video-wrapper">
+      <video ng-attr-id="{{ getVideoPlayerId() }}" class="plyr" playsinline controls>
+        <source ng-src="{{ showPreview ? ('download/'+(node.$path|escape)) : '' }}" type="video/mp4">
+      </video>
+      <div class="plyr-seek-overlay">
+        <button class="plyr-seek-big" ng-click="seekRelative(-5)" title="-5 seconds">
+          <i class="backward icon"></i> 5s
+        </button>
+        <button class="plyr-seek-big" ng-click="seekRelative(5)" title="+5 seconds">
+          5s <i class="forward icon"></i>
+        </button>
+      </div>
+    </div>
   </div>
 </div>

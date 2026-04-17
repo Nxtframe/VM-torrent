@@ -89,6 +89,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
   $scope.videoPlayer = null;
   $scope.theaterVideoPlayer = null;
   $scope.theaterMode = false;
+  $scope.theaterActive = false;
 
   $scope.getVideoPlayerId = function () {
     return 'video-' + n.$path.replace(/[^a-zA-Z0-9]/g, '_');
@@ -146,6 +147,21 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
           $scope.videoPlayer.play();
         }
       }
+    }
+  };
+
+  // Simple theater mode toggle - CSS-based approach
+  $scope.toggleTheater = function () {
+    $scope.theaterActive = !$scope.theaterActive;
+  };
+
+  // Seek relative to current position (seconds can be negative)
+  $scope.seekRelative = function (seconds) {
+    var player = $scope.theaterActive && $scope.theaterVideoPlayer
+      ? $scope.theaterVideoPlayer
+      : $scope.videoPlayer;
+    if (player && player.currentTime !== undefined) {
+      player.currentTime = Math.max(0, player.currentTime + seconds);
     }
   };
 

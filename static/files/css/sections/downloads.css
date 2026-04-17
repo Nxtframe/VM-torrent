@@ -175,7 +175,7 @@
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
-	max-width: calc(100% - 100px);
+	max-width: 300px;
 	text-shadow: 0 1px 3px rgba(0,0,0,0.6);
 }
 
@@ -185,19 +185,125 @@
 	gap: 8px;
 }
 
-.plyr-theater {
+.plyr-header-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex: 1;
+	min-width: 0;
+}
+
+.plyr-seek {
 	background: rgba(255,255,255,0.15);
 	border: none;
 	color: #fff;
-	font-size: 16px;
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
+	font-size: 12px;
+	font-weight: 600;
+	padding: 6px 10px;
+	border-radius: 6px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	transition: background 0.2s;
+	white-space: nowrap;
+}
+
+.plyr-seek:hover {
+	background: rgba(255,255,255,0.3);
+}
+
+/* Seek overlay in the middle of the video */
+.plyr-video-wrapper {
+	position: relative;
+	display: flex;
+}
+
+.plyr-video-wrapper .plyr {
+	width: 100%;
+}
+
+.plyr-seek-overlay {
+	position: absolute;
+	top: 50%;
+	left: 0;
+	right: 0;
+	transform: translateY(-50%);
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 0 40px;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	z-index: 5;
+}
+
+.plyr-player-container:hover .plyr-seek-overlay {
+	opacity: 1;
+	pointer-events: all;
+}
+
+.plyr-seek-big {
+	background: rgba(0,0,0,0.6);
+	border: 2px solid rgba(255,255,255,0.3);
+	color: #fff;
+	font-size: 14px;
+	font-weight: 600;
+	padding: 12px 20px;
+	border-radius: 30px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	transition: all 0.2s;
+	backdrop-filter: blur(4px);
+}
+
+.plyr-seek-big:hover {
+	background: rgba(0,0,0,0.8);
+	border-color: rgba(255,255,255,0.6);
+	transform: scale(1.05);
+}
+
+.plyr-theater {
+	background-color: rgba(0, 0, 0, 0.05);
+	border: none;
+	color: #fff;
+	width: 22px;
+	height: 22px;
+	border-radius: 30%;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
 	justify-content: center;
 	transition: background 0.2s;
+}
+
+.plyr-theater:hover {
+	background: rgba(255, 0, 0, 0.3);
+}
+
+/* Theater Mode - 80% screen size, centered, no blur/dark background */
+.plyr-player-container.theater-active {
+	position: fixed;
+	z-index: 9999;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	width: 80vw;
+	margin-top: 0;
+	box-shadow: 0 12px 48px rgba(0, 0, 0, 0.3);
+	container-type: normal;
+}
+
+.plyr-player-container.theater-active .plyr {
+	height: 100%;
+}
+
+.plyr-player-container.theater-active .plyr video {
+	height: 100%;
+	object-fit: contain;
 }
 
 
