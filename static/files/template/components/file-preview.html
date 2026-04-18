@@ -13,6 +13,7 @@
 
       </div>
       <div class="plyr-header-buttons">
+        <button class="plyr-subtitles" ng-click="toggleSubtitles()" title="Toggle Subtitles" ng-if="hasSubtitles()"><i class="closed captioning icon"></i></button>
         <button class="plyr-next" ng-click="playNextVideo()" title="Next Video" ng-if="hasNextVideo()"><i class="step forward icon"></i></button>
         <button class="plyr-theater" ng-click="toggleTheater()" title="Toggle Theater Mode"><i class="expand icon"></i></button>
         <button class="plyr-close" ng-click="togglePreview()">×</button>

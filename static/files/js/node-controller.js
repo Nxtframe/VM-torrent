@@ -191,6 +191,49 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
     $scope.theaterActive = !$scope.theaterActive;
   };
 
+  // Subtitles support
+  $scope.subtitlesEnabled = false;
+  $scope.subtitlesTrack = null;
+
+  $scope.hasSubtitles = function () {
+    // Check if a subtitle file exists (.srt, .vtt, .ass, .ssa) with same name
+    var basePath = n.$path.replace(/\.[^/.]+$/, "");
+    var parent = $scope.$parent.$parent;
+    if (!parent || !parent.node || !parent.node.Children) return false;
+    
+    for (var i = 0; i < parent.node.Children.length; i++) {
+      var sibling = parent.node.Children[i];
+      if (sibling.Name && sibling.Name.match(/\.(srt|vtt|ass|ssa)$/i)) {
+        var siblingBase = sibling.Name.replace(/\.[^/.]+$/, "");
+        if (siblingBase === basePath || sibling.Name.indexOf(basePath) === 0) {
+          return true;
+        }
+      }
+    }
+    return false;
+  };
+
+  $scope.toggleSubtitles = function () {
+    var player = $scope.theaterActive && $scope.theaterVideoPlayer
+      ? $scope.theaterVideoPlayer
+      : $scope.videoPlayer;
+    if (!player) return;
+
+    if ($scope.subtitlesEnabled) {
+      // Disable subtitles
+      for (var i = 0; i < player.textTracks.length; i++) {
+        player.textTracks[i].mode = 'hidden';
+      }
+      $scope.subtitlesEnabled = false;
+    } else {
+      // Enable subtitles
+      for (var i = 0; i < player.textTracks.length; i++) {
+        player.textTracks[i].mode = 'showing';
+      }
+      $scope.subtitlesEnabled = true;
+    }
+  };
+
   // Seek relative to current position (seconds can be negative)
   $scope.seekRelative = function (seconds) {
     var player = $scope.theaterActive && $scope.theaterVideoPlayer
