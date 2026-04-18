@@ -144,6 +144,52 @@ func (s *Server) apiGET(w http.ResponseWriter, r *http.Request) error {
 			EngineStatus string
 			Trackers     []string
 		}{buf.String(), s.engine.Trackers}))
+	case "canconvert":
+		rel := r.URL.Query().Get("path")
+		if rel == "" {
+			return errInvalidReq
+		}
+		filePath, _, err := s.safeAbsDownloadPath(rel)
+		if err != nil {
+			common.HandleError(json.NewEncoder(w).Encode(map[string]interface{}{"canConvert": false, "reason": "invalid path"}))
+			return nil
+		}
+		info, err := s.probeFileCodecs(filePath)
+		if err != nil {
+			common.HandleError(json.NewEncoder(w).Encode(map[string]interface{}{"canConvert": true}))
+			return nil
+		}
+		// Allow conversion if video is h264/hevc/av1/mpeg4 (can be copied) OR if we can re-encode
+		// Block only if ffprobe failed completely
+		canConvert := true
+		reason := ""
+		if info.VideoCodec != "" && info.VideoCodec != "h264" && info.VideoCodec != "hevc" && info.VideoCodec != "av1" && info.VideoCodec != "mpeg4" {
+			// MPEG-2 and other old codecs will need full re-encode, which is slow
+			// Still allow it but warn
+			reason = "video will be re-encoded (slow): " + info.VideoCodec
+		}
+		common.HandleError(json.NewEncoder(w).Encode(map[string]interface{}{
+			"canConvert": canConvert,
+			"reason":     reason,
+			"videoCodec": info.VideoCodec,
+			"audioCodec": info.AudioCodec,
+			"canCopy":    info.CanCopy,
+		}))
+	case "convertstatus":
+		rel := r.URL.Query().Get("path")
+		if rel == "" {
+			return errInvalidReq
+		}
+		j, err := s.convertStatus(rel)
+		if err != nil {
+			return err
+		}
+		common.HandleError(json.NewEncoder(w).Encode(map[string]interface{}{
+			"state":    j.state,
+			"progress": j.progress,
+			"error":    j.err,
+			"cacheRel": j.cacheRel,
+		}))
 	default:
 		return errUnknowAct
 	}
@@ -200,6 +246,13 @@ func (s *Server) apiPOST(r *http.Request) error {
 	switch action {
 	case "configure":
 		return s.apiConfigure(data)
+	case "convert":
+		rel := r.URL.Query().Get("path")
+		if rel == "" {
+			return errInvalidReq
+		}
+		_, err := s.startConvert(rel)
+		return err
 	case "magnet":
 		if err := s.engine.NewMagnet(string(data)); err != nil {
 			if errors.Is(err, engine.ErrMaxConnTasks) {

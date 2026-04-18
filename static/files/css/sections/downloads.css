@@ -255,7 +255,7 @@
 	cursor: pointer;
 	display: flex;
 	align-items: center;
-	gap: 8px;
+	gap: 22px;
 	transition: all 0.2s;
 	backdrop-filter: blur(4px);
 }
@@ -267,29 +267,11 @@
 }
 
 .plyr-theater,
-.plyr-next {
-	background-color: rgba(0, 0, 0, 0.05);
-	border: none;
-	color: #fff;
-	width: 22px;
-	height: 22px;
-	border-radius: 30%;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	transition: background 0.2s;
-}
 
-.plyr-theater:hover,
-.plyr-next:hover {
+.plyr-theater:hover {
 	background: rgba(255, 0, 0, 0.3);
 }
 
-.plyr-next:disabled {
-	opacity: 0.3;
-	cursor: not-allowed;
-}
 
 /* Theater Mode - 80% screen size, centered, no blur/dark background */
 .plyr-player-container.theater-active {
@@ -332,41 +314,9 @@
 	background: #e50914;
 }
 
-/* Next video overlay button in the middle */
-.plyr-next-overlay {
-	position: absolute;
-	top: 50%;
-	right: 80px;
-	transform: translateY(-50%);
-	opacity: 0;
-	transition: opacity 0.3s ease;
-	z-index: 5;
-}
 
-.plyr-player-container:hover .plyr-next-overlay {
+.plyr-player-container:hover {
 	opacity: 1;
-}
-
-.plyr-next-big {
-	background: rgba(0,0,0,0.6);
-	border: 2px solid rgba(255,255,255,0.3);
-	color: #fff;
-	font-size: 14px;
-	font-weight: 600;
-	padding: 15px 25px;
-	border-radius: 30px;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	transition: all 0.2s;
-	backdrop-filter: blur(4px);
-}
-
-.plyr-next-big:hover {
-	background: rgba(0,0,0,0.8);
-	border-color: rgba(255,255,255,0.6);
-	transform: scale(1.05);
 }
 
 /* Plyr container sizing */

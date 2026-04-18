@@ -233,6 +233,8 @@ app.controller("OmniController", function (
       window.alert("UI Bug");
     }
     $rootScope.set_torrent_expanded(true);
+    $scope.inputs.omni = "";
+    $scope.parse();
   };
 
   $scope.submitSearch = function () {

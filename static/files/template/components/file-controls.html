@@ -6,6 +6,16 @@
     <a ng-if="!isfile()" ng-href="download/{{ node.$path | escape }}" title="Download folder">
       <i class="file archive icon"></i>
     </a>
+    <i ng-if="isfile() && videoPreview && showConvertButton()"
+      ng-click="startConvert()" class="exchange icon" title="Convert to MP4"></i>
+    <span ng-if="isfile() && videoPreview && convert && convert.state === 'running'" class="convert-progress-inline" title="Converting...">
+      <i class="spinner loading icon"></i>{{ (convert.progress*100) | number:0 }}%
+    </span>
+    <span ng-if="isfile() && videoPreview && convert && convert.state === 'error'" class="convert-error-inline" title="{{ convert.error }}">
+      <i class="red times circle icon"></i>
+    </span>
+    <i ng-if="isfile() && videoPreview && convert && convert.state === 'done'"
+      ng-click="useConverted()" class="play icon green" title="Play Converted"></i>
     <i ng-if="isfile()" ng-click="togglePreview()"
       ng-class="previewIcon()" class="icon" title="Preview"></i>
   </div>

@@ -1,10 +1,13 @@
 package server
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
@@ -48,11 +51,13 @@ func (s *Server) serveDownloadFiles(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Nice try\n"+dldir+"\n"+file, http.StatusBadRequest)
 		return
 	}
+
 	info, err := os.Stat(file)
 	if err != nil {
 		http.Error(w, "File stat error: "+err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	switch r.Method {
 	case "GET":
 		if info.IsDir() {
@@ -63,6 +68,16 @@ func (s *Server) serveDownloadFiles(w http.ResponseWriter, r *http.Request) {
 			common.HandleError(a.AddDir(file))
 			a.Close()
 		} else {
+			filename := filepath.Base(file)
+			asciiName := filename
+			if len(asciiName) > 100 {
+				hash := sha256.Sum256([]byte(file))
+				ext := filepath.Ext(filename)
+				asciiName = hex.EncodeToString(hash[:8]) + ext
+			}
+			// Support Japanese/Unicode filenames via filename*
+			escaped := url.PathEscape(filename)
+			w.Header().Set("Content-Disposition", `attachment; filename="`+asciiName+`"; filename*=UTF-8''`+escaped)
 			http.ServeFile(w, r, file)
 		}
 	case "DELETE":

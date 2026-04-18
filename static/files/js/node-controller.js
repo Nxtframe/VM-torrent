@@ -32,6 +32,12 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
   $scope.imagePreview = /\.(jpe?g|png|gif)$/i.test(path);
   $scope.videoPreview = /\.(mp4|mkv|mov|mpeg|ts|avi|webm|ogv)$/i.test(path);
 
+  // Initialize conversion state on controller load (persists across page refresh)
+  if ($scope.videoPreview && $scope.needsTranscoding(n.Name)) {
+    $scope.checkCanConvert();
+    $scope.refreshConvertStatus();
+  }
+
   $scope.isdownloading = function (fileName) {
     if ($scope.isfile() && (fileName in $rootScope.DownloadingFiles)) {
       return true
@@ -101,18 +107,147 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
 
   $scope.hlsInstance = null;
 
+  $scope.convert = null;
+  $scope.convertPoller = null;
+  $scope.useConvertedFile = false;
+  $scope.canConvertInfo = null;
+
   // Check if file needs server-side transcoding
   $scope.needsTranscoding = function (filename) {
     return /\.(ts|mpeg|mpg|mkv|avi|mov)$/i.test(filename);
   };
 
+  // Check if file can be converted (codecs compatible with MP4)
+  $scope.checkCanConvert = function () {
+    if (!$scope.videoPreview || !$scope.needsTranscoding(n.Name)) {
+      $scope.canConvertInfo = { canConvert: false };
+      return;
+    }
+    $http.get('api/canconvert?path=' + encodeURIComponent(n.$path))
+      .then(function (xhr) {
+        $scope.canConvertInfo = xhr.data;
+      })
+      .catch(function () {
+        $scope.canConvertInfo = { canConvert: true };
+      });
+  };
+
+  // Determine if convert button should show
+  $scope.showConvertButton = function () {
+    if (!$scope.videoPreview || !$scope.needsTranscoding(n.Name)) return false;
+    if ($scope.canConvertInfo && $scope.canConvertInfo.canConvert === false) return false;
+    if (!$scope.convert || $scope.convert.state === 'idle' || $scope.convert.state === 'error') return true;
+    return false;
+  };
+
   // Get video URL - direct or transcoded
   $scope.getVideoUrl = function () {
     var encodedPath = encodeURIComponent(n.$path);
+    if ($scope.useConvertedFile && $scope.convert && $scope.convert.state === 'done' && $scope.convert.cacheRel) {
+      return 'download/' + $scope.convert.cacheRel;
+    }
     if ($scope.needsTranscoding(n.Name)) {
       return 'transcode/' + encodedPath;
     }
     return 'download/' + encodedPath;
+  };
+
+  $scope.refreshConvertStatus = function () {
+    if (!$scope.videoPreview) return;
+    $http.get('api/convertstatus?path=' + encodeURIComponent(n.$path))
+      .then(function (xhr) {
+        $scope.convert = {
+          state: xhr.data.state,
+          progress: xhr.data.progress || 0,
+          error: xhr.data.error,
+          cacheRel: xhr.data.cacheRel
+        };
+        if ($scope.convert.state === 'done') {
+          $scope.useConvertedFile = true;
+          $scope.reinitVideoPlayer();
+          return;
+        }
+        if ($scope.convert.state === 'running') {
+          $scope.pollConvert();
+        }
+      })
+      .catch(function () {
+        $scope.convert = { state: 'idle', progress: 0 };
+      });
+  };
+
+  $scope.startConvert = function () {
+    $scope.useConvertedFile = false;
+    $scope.convert = { state: 'running', progress: 0 };
+    $http.post('api/convert?path=' + encodeURIComponent(n.$path), '')
+      .then(function () {
+        $scope.pollConvert();
+      })
+      .catch(function (err) {
+        $scope.convert = { state: 'error', progress: 0, error: (err.data || err.statusText) };
+      });
+  };
+
+  $scope.pollConvert = function () {
+    if ($scope.convertPoller) return;
+    var tick = function () {
+      if (!$scope.showPreview || !$scope.videoPreview) {
+        $scope.convertPoller = null;
+        return;
+      }
+      $http.get('api/convertstatus?path=' + encodeURIComponent(n.$path))
+        .then(function (xhr) {
+          $scope.convert = {
+            state: xhr.data.state,
+            progress: xhr.data.progress || 0,
+            error: xhr.data.error,
+            cacheRel: xhr.data.cacheRel
+          };
+          if ($scope.convert.state === 'done') {
+            $scope.useConvertedFile = true;
+            $scope.convertPoller = null;
+            $scope.reinitVideoPlayer();
+            return;
+          }
+          if ($scope.convert.state === 'error') {
+            $scope.convertPoller = null;
+            return;
+          }
+          $scope.convertPoller = $timeout(tick, 1000);
+        })
+        .catch(function () {
+          $scope.convertPoller = $timeout(tick, 1500);
+        });
+    };
+    $scope.convertPoller = $timeout(tick, 500);
+  };
+
+  $scope.useConverted = function () {
+    $scope.useConvertedFile = true;
+    // Open preview if not already open
+    if (!$scope.showPreview) {
+      $scope.showPreview = true;
+      $timeout(function () {
+        $scope.videoPlayer = $scope.initVideoPlayer($scope.getVideoPlayerId(), true);
+      }, 100);
+    } else {
+      $scope.reinitVideoPlayer();
+    }
+  };
+
+  $scope.reinitVideoPlayer = function () {
+    if (!$scope.videoPreview) return;
+    if ($scope.videoPlayer) {
+      $scope.videoPlayer.destroy();
+      $scope.videoPlayer = null;
+    }
+    if ($scope.hlsInstance) {
+      $scope.hlsInstance.destroy();
+      $scope.hlsInstance = null;
+    }
+    $timeout(function () {
+      $scope.videoPlayer = $scope.initVideoPlayer($scope.getVideoPlayerId(), true);
+    }, 50);
   };
 
   $scope.initVideoPlayer = function (videoId, autoplay) {
@@ -146,6 +281,45 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
       speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
       hideControls: false,
       resetOnEnd: false
+    });
+
+    // Keyboard shortcuts for seeking
+    var keyHandler = function (e) {
+      if (!$scope.videoPlayer) return;
+
+      var seekAmount = 10;
+      if (e.key === 'd' || e.key === 'D') {
+        $scope.seekRelative(seekAmount);
+        e.preventDefault();
+      } else if (e.key === 'a' || e.key === 'A') {
+        $scope.seekRelative(-seekAmount);
+        e.preventDefault();
+      } else if (e.key === 'Escape' || e.key === 'Esc') {
+        // Close instantly without full toggle
+        $scope.showPreview = false;
+        if ($scope.videoPlayer) {
+          $scope.videoPlayer.destroy();
+          $scope.videoPlayer = null;
+        }
+        if ($scope.hlsInstance) {
+          $scope.hlsInstance.destroy();
+          $scope.hlsInstance = null;
+        }
+        $scope.theaterActive = false;
+        e.preventDefault();
+      }
+    };
+
+    // Remove any existing key handler to prevent duplicates
+    if ($scope.videoKeyHandler) {
+      document.removeEventListener('keydown', $scope.videoKeyHandler);
+    }
+    $scope.videoKeyHandler = keyHandler;
+    document.addEventListener('keydown', keyHandler);
+
+    // Cleanup on destroy
+    player.on('destroy', function () {
+      document.removeEventListener('keydown', keyHandler);
     });
 
     return player;
@@ -333,6 +507,11 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
 
     // Initialize Plyr for video files
     if ($scope.showPreview && $scope.videoPreview) {
+      $scope.useConvertedFile = false;
+      $scope.convert = null;
+      $scope.canConvertInfo = null;
+      $scope.checkCanConvert();
+      $scope.refreshConvertStatus();
       $timeout(function () {
         $scope.videoPlayer = $scope.initVideoPlayer($scope.getVideoPlayerId(), true);
       }, 100);
@@ -343,6 +522,10 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
     if (!$scope.showPreview && $scope.hlsInstance) {
       $scope.hlsInstance.destroy();
       $scope.hlsInstance = null;
+    }
+    if (!$scope.showPreview && $scope.convertPoller) {
+      $timeout.cancel($scope.convertPoller);
+      $scope.convertPoller = null;
     }
   };
 });
