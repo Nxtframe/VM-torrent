@@ -65,6 +65,8 @@ func (s *Server) webHandle(w http.ResponseWriter, r *http.Request) {
 		s.restAPIhandle(w, r)
 	case "download":
 		s.dlfilesh.ServeHTTP(w, r)
+	case "transcode":
+		http.StripPrefix("/transcode/", http.HandlerFunc(s.serveTranscode)).ServeHTTP(w, r)
 	case s.tpl.Version:
 		w.Header().Set("Expires", time.Now().UTC().AddDate(0, 6, 0).Format(http.TimeFormat))
 		w.Header().Set("Cache-Control", "max-age:290304000, public")

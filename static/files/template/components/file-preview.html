@@ -13,17 +13,21 @@
 
       </div>
       <div class="plyr-header-buttons">
+        <button class="plyr-next" ng-click="playNextVideo()" title="Next Video" ng-if="hasNextVideo()"><i class="step forward icon"></i></button>
         <button class="plyr-theater" ng-click="toggleTheater()" title="Toggle Theater Mode"><i class="expand icon"></i></button>
         <button class="plyr-close" ng-click="togglePreview()">×</button>
       </div>
     </div>
     <div class="plyr-video-wrapper">
       <video ng-attr-id="{{ getVideoPlayerId() }}" class="plyr" playsinline controls>
-        <source ng-src="{{ showPreview ? ('download/'+(node.$path|escape)) : '' }}" type="video/mp4">
+        <source ng-src="{{ showPreview ? getVideoUrl() : '' }}" type="video/mp4">
       </video>
       <div class="plyr-seek-overlay">
         <button class="plyr-seek-big" ng-click="seekRelative(-5)" title="-5 seconds">
           <i class="backward icon"></i> 5s
+        </button>
+        <button class="plyr-next-big" ng-click="playNextVideo()" title="Next Video" ng-if="hasNextVideo()">
+          Next <i class="step forward icon"></i>
         </button>
         <button class="plyr-seek-big" ng-click="seekRelative(5)" title="+5 seconds">
           5s <i class="forward icon"></i>

@@ -30,7 +30,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
   n.$closed = $scope.agoHrs(n.Modified) > 24;
   $scope.audioPreview = /\.(mp3|m4a)$/i.test(path);
   $scope.imagePreview = /\.(jpe?g|png|gif)$/i.test(path);
-  $scope.videoPreview = /\.(mp4|mkv|mov)$/i.test(path);
+  $scope.videoPreview = /\.(mp4|mkv|mov|mpeg|ts|avi|webm|ogv)$/i.test(path);
 
   $scope.isdownloading = function (fileName) {
     if ($scope.isfile() && (fileName in $rootScope.DownloadingFiles)) {
@@ -62,7 +62,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
       if ($scope.isfile()) {
         if ($scope.audioPreview) c.push("audio");
         else if ($scope.imagePreview) c.push("image");
-        else if ($scope.videoPreview || /\.(avi)$/.test(path)) c.push("video");
+        else if ($scope.videoPreview || /\.(avi|mpeg|ts|webm|ogv)$/.test(path)) c.push("video");
         c.push("file");
       } else {
         c.push("folder");
@@ -99,20 +99,56 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
     return 'video-' + n.$path.replace(/[^a-zA-Z0-9]/g, '_') + '-theater';
   };
 
+  $scope.hlsInstance = null;
+
+  // Check if file needs server-side transcoding
+  $scope.needsTranscoding = function (filename) {
+    return /\.(ts|mpeg|mpg|mkv|avi|mov)$/i.test(filename);
+  };
+
+  // Get video URL - direct or transcoded
+  $scope.getVideoUrl = function () {
+    var encodedPath = encodeURIComponent(n.$path);
+    if ($scope.needsTranscoding(n.Name)) {
+      return 'transcode/' + encodedPath;
+    }
+    return 'download/' + encodedPath;
+  };
+
   $scope.initVideoPlayer = function (videoId, autoplay) {
     var videoElement = document.getElementById(videoId);
-    if (videoElement && typeof Plyr !== 'undefined') {
-      var player = new Plyr(videoElement, {
-        autoplay: autoplay,
-        controls: ['play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen'],
-        settings: ['speed', 'quality'],
-        speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
-        hideControls: false,
-        resetOnEnd: false
-      });
-      return player;
+    if (!videoElement || typeof Plyr === 'undefined') return null;
+
+    var isTsFile = /\.ts$/i.test(n.Name);
+    var needsTranscode = $scope.needsTranscoding(n.Name);
+    var videoUrl = $scope.getVideoUrl();
+
+    // Destroy previous hls instance if exists
+    if ($scope.hlsInstance) {
+      $scope.hlsInstance.destroy();
+      $scope.hlsInstance = null;
     }
-    return null;
+
+    // For .ts files without transcoding, use hls.js
+    if (isTsFile && !needsTranscode && typeof Hls !== 'undefined' && Hls.isSupported()) {
+      $scope.hlsInstance = new Hls({
+        maxBufferLength: 30,
+        maxMaxBufferLength: 60
+      });
+      $scope.hlsInstance.loadSource(videoUrl);
+      $scope.hlsInstance.attachMedia(videoElement);
+    }
+
+    var player = new Plyr(videoElement, {
+      autoplay: autoplay,
+      controls: ['play', 'progress', 'current-time', 'duration', 'mute', 'volume', 'settings', 'fullscreen'],
+      settings: ['speed', 'quality'],
+      speed: { selected: 1, options: [0.5, 0.75, 1, 1.25, 1.5, 2] },
+      hideControls: false,
+      resetOnEnd: false
+    });
+
+    return player;
   };
 
   $scope.toggleTheaterMode = function () {
@@ -165,6 +201,83 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
     }
   };
 
+  // Find next video in the list
+  $scope.findNextVideoNode = function () {
+    var siblings = [];
+    var parent = $scope.$parent.$parent;
+    if (parent && parent.node && parent.node.Children) {
+      siblings = parent.node.Children;
+    } else if ($scope.$parent.$DownloadedFiles) {
+      siblings = $scope.$parent.$DownloadedFiles;
+    }
+
+    var currentIndex = -1;
+    for (var i = 0; i < siblings.length; i++) {
+      if (siblings[i].$path === n.$path) {
+        currentIndex = i;
+        break;
+      }
+    }
+
+    for (var j = currentIndex + 1; j < siblings.length; j++) {
+      if (/\.(mp4|mkv|mov|avi|mpeg|ts|webm|ogv)$/i.test(siblings[j].Name)) {
+        return siblings[j];
+      }
+    }
+    return null;
+  };
+
+  $scope.hasNextVideo = function () {
+    return $scope.findNextVideoNode() !== null;
+  };
+
+  $scope.playNextVideo = function () {
+    var nextNode = $scope.findNextVideoNode();
+    if (!nextNode) return;
+
+    var nextScope = null;
+    var siblings = [];
+    var parent = $scope.$parent.$parent;
+    if (parent && parent.node && parent.node.Children) {
+      siblings = parent.node.Children;
+    } else if ($scope.$parent.$DownloadedFiles) {
+      siblings = $scope.$parent.$DownloadedFiles;
+    }
+
+    // Find the scope of the next node
+    var childScopes = $scope.$parent.$$childHead;
+    while (childScopes) {
+      if (childScopes.node && childScopes.node.$path === nextNode.$path) {
+        nextScope = childScopes;
+        break;
+      }
+      childScopes = childScopes.$$nextSibling;
+    }
+
+    // Close current preview
+    $scope.showPreview = false;
+    if ($scope.videoPlayer) {
+      $scope.videoPlayer.destroy();
+      $scope.videoPlayer = null;
+    }
+    if ($scope.hlsInstance) {
+      $scope.hlsInstance.destroy();
+      $scope.hlsInstance = null;
+    }
+    $scope.theaterActive = false;
+
+    // Open next video preview
+    if (nextScope) {
+      $timeout(function () {
+        nextScope.showPreview = true;
+        nextScope.$applyAsync();
+        $timeout(function () {
+          nextScope.videoPlayer = nextScope.initVideoPlayer(nextScope.getVideoPlayerId(), true);
+        }, 100);
+      }, 50);
+    }
+  };
+
   $scope.togglePreview = function () {
     $scope.showPreview = !$scope.showPreview;
     if (!$scope.showPreview) {
@@ -183,6 +296,10 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
     } else if (!$scope.showPreview && $scope.videoPlayer) {
       $scope.videoPlayer.destroy();
       $scope.videoPlayer = null;
+    }
+    if (!$scope.showPreview && $scope.hlsInstance) {
+      $scope.hlsInstance.destroy();
+      $scope.hlsInstance = null;
     }
   };
 });

@@ -19,7 +19,7 @@
 .downloads .file-card:hover {
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 	border-color: #d0d0d0;
-	transform: translateY(-1px);
+	
 }
 
 .downloads .file-card-main {
@@ -126,7 +126,7 @@
 .downloads .file-actions .controls i:hover,
 .downloads .file-actions .controls a:hover {
 	opacity: 1;
-	transform: scale(1.15);
+	
 }
 
 .downloads .preview video,
@@ -230,9 +230,9 @@
 	right: 0;
 	transform: translateY(-50%);
 	display: flex;
-	justify-content: space-between;
+	justify-content: center;
 	align-items: center;
-	padding: 0 40px;
+	gap: 60px;
 	pointer-events: none;
 	opacity: 0;
 	transition: opacity 0.3s ease;
@@ -266,7 +266,8 @@
 	transform: scale(1.05);
 }
 
-.plyr-theater {
+.plyr-theater,
+.plyr-next {
 	background-color: rgba(0, 0, 0, 0.05);
 	border: none;
 	color: #fff;
@@ -280,8 +281,14 @@
 	transition: background 0.2s;
 }
 
-.plyr-theater:hover {
+.plyr-theater:hover,
+.plyr-next:hover {
 	background: rgba(255, 0, 0, 0.3);
+}
+
+.plyr-next:disabled {
+	opacity: 0.3;
+	cursor: not-allowed;
 }
 
 /* Theater Mode - 80% screen size, centered, no blur/dark background */
@@ -306,16 +313,14 @@
 	object-fit: contain;
 }
 
-
-
-.plyr-close {
-	background: rgba(255,255,255,0.15);
+.plyr-close{
+	background-color: rgba(0, 0, 0, 0.05);
 	border: none;
 	color: #fff;
-	font-size: 20px;
-	width: 32px;
-	height: 32px;
-	border-radius: 50%;
+	width: 22px;
+	height: 22px;
+	font-size: 22px;
+	border-radius: 30%;
 	cursor: pointer;
 	display: flex;
 	align-items: center;
@@ -325,6 +330,43 @@
 
 .plyr-close:hover {
 	background: #e50914;
+}
+
+/* Next video overlay button in the middle */
+.plyr-next-overlay {
+	position: absolute;
+	top: 50%;
+	right: 80px;
+	transform: translateY(-50%);
+	opacity: 0;
+	transition: opacity 0.3s ease;
+	z-index: 5;
+}
+
+.plyr-player-container:hover .plyr-next-overlay {
+	opacity: 1;
+}
+
+.plyr-next-big {
+	background: rgba(0,0,0,0.6);
+	border: 2px solid rgba(255,255,255,0.3);
+	color: #fff;
+	font-size: 14px;
+	font-weight: 600;
+	padding: 15px 25px;
+	border-radius: 30px;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	transition: all 0.2s;
+	backdrop-filter: blur(4px);
+}
+
+.plyr-next-big:hover {
+	background: rgba(0,0,0,0.8);
+	border-color: rgba(255,255,255,0.6);
+	transform: scale(1.05);
 }
 
 /* Plyr container sizing */
