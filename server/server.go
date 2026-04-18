@@ -65,9 +65,14 @@ type Server struct {
 	ConvYAML       bool   `opts:"help=Convert old json config to yaml format."`
 	IntevalSec     int    `opts:"help=Inteval seconds to push data to clients (default 3),env=INTEVALSEC"`
 
+	//jackett config
+	JackettURL  string `opts:"help=Jackett API URL (e.g., http://localhost:9117),env=JACKETT_URL"`
+	JackettKey  string `opts:"help=Jackett API key,env=JACKETT_KEY"`
+
 	//http handlers
 	scraperh, dlfilesh, statich, verStatich, rssh http.Handler
 	scraper                                       *scraper.Handler
+	jackett                                       *JackettClient
 
 	//torrent engine
 	engine *engine.Engine
@@ -148,6 +153,12 @@ func (s *Server) Run(tpl *TPLInfo) error {
 	}
 	s.searchProviders = &s.scraper.Config //share scraper config with web frontend
 	s.scraperh = http.StripPrefix("/search", s.scraper)
+
+	// Initialize Jackett client if configured
+	if s.JackettURL != "" && s.JackettKey != "" {
+		s.jackett = NewJackettClient(s.JackettURL, s.JackettKey)
+		log.Printf("Jackett client initialized: %s", s.JackettURL)
+	}
 
 	// sync config from cmd arg to viper
 	viper.SetDefault("ProxyURL", s.ProxyURL)

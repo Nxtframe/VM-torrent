@@ -6,6 +6,7 @@ app.controller("OmniController", function (
   api,
   apiget,
   search,
+  jackett,
   reqinfo,
   rss
 ) {
@@ -20,6 +21,8 @@ app.controller("OmniController", function (
     trackers: [{ v: "" }]
   };
   $scope.providers = {};
+  $scope.jackettIndexers = [];
+  $scope.inputs.jackettIndexer = storage.tcJackettIndexer || "all";
   $scope.$watch("inputs.provider", function (p) {
     if (p) storage.tcProvider = p;
     $scope.parse();
@@ -30,6 +33,17 @@ app.controller("OmniController", function (
       $scope.providers[k] = val;
     });
     $scope.SearchProvidersConfig = xhr.data;
+    // Load Jackett indexers if available
+    jackett.getIndexers().then(function (xhr) {
+      $scope.jackettIndexers = [{id: "all", name: "All Indexers"}];
+      angular.forEach(xhr.data, function (idx) {
+        $scope.jackettIndexers.push({id: idx, name: idx});
+      });
+      // Add jackett as a provider option
+      $scope.providers["jackett"] = { name: "Jackett (500+ sites)", url: "jackett" };
+    }).catch(function () {
+      // Jackett not configured, ignore
+    });
     $scope.parse();
   });
 
@@ -175,6 +189,25 @@ app.controller("OmniController", function (
   };
 
   $scope.submitSearch = function () {
+    // Handle Jackett search
+    if ($scope.inputs.provider === "jackett") {
+      storage.tcJackettIndexer = $scope.inputs.jackettIndexer;
+      jackett.search($scope.inputs.omni, $scope.inputs.jackettIndexer)
+        .then(function (xhr) {
+          var results = xhr.data;
+          if (!results || results.length === 0) {
+            $scope.noResults = true;
+            $scope.hasMore = false;
+            return;
+          }
+          for (var i = 0; i < results.length; i++) {
+            $scope.results.push(results[i]);
+          }
+          $scope.hasMore = false; // Jackett returns all results at once
+        });
+      return;
+    }
+
     //lookup provider's origin
     var provider = $scope.SearchProvidersConfig[$scope.inputs.provider];
     if (!provider) return;
@@ -221,11 +254,12 @@ app.controller("OmniController", function (
 
   $scope.submitSearchItem = function (result) {
     //if search item has magnet/torrent, download now!
-    if (result.magnet) {
-      api.magnet(result.magnet);
+    if (result.magnet || result.MagnetUri) {
+      api.magnet(result.magnet || result.MagnetUri);
       return;
     } else if (result.infohash) {
-      api.magnet(magnetURI(result.name, result.infohash, parseTrackers(result))).then(reqinfo);
+      var name = result.name || result.Title || "Unknown";
+      api.magnet(magnetURI(name, result.infohash, parseTrackers(result))).then(reqinfo);
       return;
     } else if (result.torrent) {
       api.url(result.torrent).then(reqinfo);
@@ -243,7 +277,8 @@ app.controller("OmniController", function (
         if (data.magnet) {
           magnet = data.magnet;
         } else if (data.infohash) {
-          magnet = magnetURI(result.name, data.infohash, parseTrackers(result));
+          var n = result.name || result.Title || "Unknown";
+          magnet = magnetURI(n, data.infohash, parseTrackers(result));
         } else {
           $scope.omnierr = "No magnet or infohash found";
           return;

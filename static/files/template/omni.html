@@ -55,6 +55,10 @@
   <select ng-hide="mode.rss" class="ui tiny button" ng-model="inputs.provider"
     ng-options="id as s.name for (id, s) in providers">
   </select>
+  <!-- Jackett indexer selector -->
+  <select ng-show="inputs.provider === 'jackett' && jackettIndexers.length > 0" class="ui tiny button" ng-model="inputs.jackettIndexer"
+    ng-options="idx.id as idx.name for idx in jackettIndexers">
+  </select>
   <div ng-hide="mode.rss" ng-click="submitSearch()" class="ui tiny blue button" ng-class="{loading: searching,
       disabled: noResults || hasMore && results && results.length > 0
     }">
@@ -89,13 +93,13 @@
     <table class="ui unstackable compact striped tcld very basic table">
       <tr ng-repeat="r in results">
         <td class="name">
-          <a ng-href="{{ r.url }}" target="_blank">{{ r.name }}</a>
+          <a ng-href="{{ r.url || r.MagnetUri || r.Link }}" target="_blank">{{ r.name || r.Title }}</a>
         </td>
         <td class="size" ng-if="r.size">{{ r.size }}</td>
         <td class="users">
-          <span class="seeds" title="seeds">{{ r.seeds }}</span>
+          <span class="seeds" title="seeds">{{ r.seeds || r.Seeders }}</span>
           <br />
-          <span class="peers" title="peers">{{ r.peers }}</span>
+          <span class="peers" title="peers">{{ r.peers || r.Peers }}</span>
         </td>
         <td class="controls">
           <i ng-click="submitSearchItem(r)" class="ui green magnet icon" title="load magnet link"></i>

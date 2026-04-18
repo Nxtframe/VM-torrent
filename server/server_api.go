@@ -76,6 +76,34 @@ func (s *Server) apiGET(w http.ResponseWriter, r *http.Request) error {
 		common.HandleError(json.NewEncoder(w).Encode(s.state.Stats))
 	case "searchproviders":
 		common.HandleError(json.NewEncoder(w).Encode(s.searchProviders))
+	case "jackett":
+		// Jackett search: /api/jackett?q=query&indexer=all
+		if s.jackett == nil {
+			return fmt.Errorf("Jackett not configured")
+		}
+		query := r.URL.Query().Get("q")
+		indexer := r.URL.Query().Get("indexer")
+		if indexer == "" {
+			indexer = "all"
+		}
+		if query == "" {
+			return errInvalidReq
+		}
+		results, err := s.jackett.SearchWithIndexers(query, indexer)
+		if err != nil {
+			return fmt.Errorf("Jackett search failed: %w", err)
+		}
+		common.HandleError(json.NewEncoder(w).Encode(ConvertToScraperResults(results, "jackett")))
+	case "jackettindexers":
+		// List configured Jackett indexers: /api/jackettindexers
+		if s.jackett == nil {
+			return fmt.Errorf("Jackett not configured")
+		}
+		indexers, err := s.jackett.GetIndexerList()
+		if err != nil {
+			return fmt.Errorf("Failed to get indexers: %w", err)
+		}
+		common.HandleError(json.NewEncoder(w).Encode(indexers))
 	case "enginedebug":
 		w.Header().Set("Content-Type", "application/json")
 		var buf bytes.Buffer

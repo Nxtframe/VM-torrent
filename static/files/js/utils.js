@@ -89,12 +89,31 @@ app.factory("apiget", function ($rootScope, $http, reqerr) {
     "configure",
     "enginedebug",
     "searchproviders",
+    "jackettindexers",
     "files"
   ];
   actions.forEach(function (action) {
     api[action] = request.bind(null, action);
   });
   return api;
+});
+
+app.factory("jackett", function ($rootScope, $http, reqerr) {
+  return {
+    search: function (query, indexer) {
+      if (!indexer) indexer = "all";
+      $rootScope.searching = true;
+      var req = $http.get("api/jackett", { params: { q: query, indexer: indexer } })
+        .catch(reqerr)
+        .finally(function () {
+          $rootScope.searching = false;
+        });
+      return req;
+    },
+    getIndexers: function () {
+      return $http.get("api/jackettindexers").catch(reqerr);
+    }
+  };
 });
 
 app.factory("search", function ($rootScope, $http, reqerr) {
