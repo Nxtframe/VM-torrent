@@ -15,7 +15,9 @@ app.controller("ConfigController", function ($scope, $rootScope, api) {
     "DownloadRate",
     "TrackerList",
     "AlwaysAddTrackers",
-    "RssURL"
+    "RssURL",
+    "JackettURL",
+    "JackettKey"
   ];
 
   $scope.configAttr = {
@@ -29,7 +31,9 @@ app.controller("ConfigController", function ($scope, $rootScope, api) {
     "DownloadRate": { t: "text", desc: "Download speed limiter, Low(~50k/s), Medium(~500k/s) and High(~1500k/s) is accepted , Unlimited / 0 or empty result in unlimited rate, or a customed value eg: 850k/720kb/2.85MB. " },
     "TrackerList": { t: "multiline", desc: "A list of trackers to add to torrents, prefix with \"remote:\" will be retrived with http." },
     "AlwaysAddTrackers": { t: "check", desc: "Whether add trackers even there are trackers specified in the torrent/magnet" },
-    "RssURL": { t: "multiline", desc: "A newline seperated list of magnet RSS feeds. (http/https)" }
+    "RssURL": { t: "multiline", desc: "A newline seperated list of magnet RSS feeds. (http/https)" },
+    "JackettURL": { t: "text", desc: "Jackett API URL (e.g., http://localhost:9117)" },
+    "JackettKey": { t: "text", desc: "Jackett API key - found in Jackett UI at top right" }
   };
 
   $scope.toggle = function (b) {

@@ -56,6 +56,8 @@ type Config struct {
 	ScraperURL              string        `yaml:"ScraperURL"`
 	MaxConcurrentTask       int           `yaml:"MaxConcurrentTask"`
 	AllowRuntimeConfigure   bool          `yaml:"AllowRuntimeConfigure"`
+	JackettURL              string        `yaml:"JackettURL"`
+	JackettKey              string        `yaml:"JackettKey"`
 }
 
 func InitConf(specPath *string) (*Config, error) {
@@ -83,6 +85,8 @@ func InitConf(specPath *string) (*Config, error) {
 	viper.SetDefault("IncomingPort", 50007)
 	viper.SetDefault("MaxConcurrentTask", 0)
 	viper.SetDefault("AllowRuntimeConfigure", true)
+	viper.SetDefault("JackettURL", "")
+	viper.SetDefault("JackettKey", "")
 
 	configExists := true
 	if err := viper.ReadInConfig(); err != nil {

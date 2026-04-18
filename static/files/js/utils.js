@@ -89,6 +89,7 @@ app.factory("apiget", function ($rootScope, $http, reqerr) {
     "configure",
     "enginedebug",
     "searchproviders",
+    "jackettconfig",
     "jackettindexers",
     "files"
   ];

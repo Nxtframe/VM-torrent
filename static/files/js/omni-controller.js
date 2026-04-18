@@ -51,6 +51,53 @@ app.controller("OmniController", function (
     $scope.mode.torrent = true;
   };
 
+  // Jackett configuration UI
+  $scope.showJackettConfig = false;
+  $scope.jackettConfig = { url: "", key: "" };
+  $scope.jackettConfigMessage = null;
+
+  $scope.toggleJackettConfig = function () {
+    $scope.showJackettConfig = !$scope.showJackettConfig;
+    if ($scope.showJackettConfig) {
+      // Load current config
+      apiget.jackettconfig().then(function (xhr) {
+        $scope.jackettConfig.url = xhr.data.url || "http://localhost:9117";
+        $scope.jackettConfig.key = xhr.data.key || "";
+      });
+    }
+  };
+
+  $scope.saveJackettConfig = function () {
+    $http.post("api/jackettconfig", $scope.jackettConfig)
+      .then(function () {
+        $scope.jackettConfigMessage = { type: "success", text: "Jackett configuration saved!" };
+        // Reload indexers
+        jackett.getIndexers().then(function (xhr) {
+          $scope.jackettIndexers = [{id: "all", name: "All Indexers"}];
+          angular.forEach(xhr.data, function (idx) {
+            $scope.jackettIndexers.push({id: idx, name: idx});
+          });
+          $scope.providers["jackett"] = { name: "Jackett (500+ sites)", url: "jackett" };
+        });
+      })
+      .catch(function (err) {
+        $scope.jackettConfigMessage = { type: "error", text: "Failed to save: " + (err.data || err.statusText) };
+      });
+  };
+
+  $scope.testJackettConfig = function () {
+    var testClient = { search: function() {
+      return $http.get("api/jackettindexers").catch(function() {
+        throw new Error("Cannot connect to Jackett");
+      });
+    }};
+    testClient.search().then(function () {
+      $scope.jackettConfigMessage = { type: "success", text: "Connection successful!" };
+    }).catch(function (err) {
+      $scope.jackettConfigMessage = { type: "error", text: "Connection failed: " + err.data };
+    });
+  };
+
   var parseMagnet = function (params) {
     $scope.mode.magnet = true;
     var m = window.queryString.parse(params);

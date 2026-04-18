@@ -14,6 +14,7 @@ import (
 
 	"github.com/boypt/simple-torrent/common"
 	"github.com/boypt/simple-torrent/engine"
+	"github.com/spf13/viper"
 )
 
 var (
@@ -104,6 +105,37 @@ func (s *Server) apiGET(w http.ResponseWriter, r *http.Request) error {
 			return fmt.Errorf("Failed to get indexers: %w", err)
 		}
 		common.HandleError(json.NewEncoder(w).Encode(indexers))
+	case "jackettconfig":
+		// Get/Set Jackett config: GET/POST /api/jackettconfig
+		if r.Method == "GET" {
+			config := map[string]string{
+				"url":  viper.GetString("JackettURL"),
+				"key":  viper.GetString("JackettKey"),
+			}
+			if config["url"] == "" {
+				config["url"] = "http://localhost:9117"
+			}
+			common.HandleError(json.NewEncoder(w).Encode(config))
+		} else if r.Method == "POST" {
+			var config struct {
+				URL string `json:"url"`
+				Key string `json:"key"`
+			}
+			if err := json.NewDecoder(r.Body).Decode(&config); err != nil {
+				return fmt.Errorf("Invalid config: %w", err)
+			}
+			viper.Set("JackettURL", config.URL)
+			viper.Set("JackettKey", config.Key)
+			// Re-initialize Jackett client
+			if config.URL != "" && config.Key != "" {
+				s.jackett = NewJackettClient(config.URL, config.Key)
+				log.Printf("Jackett client updated: %s", config.URL)
+			} else {
+				s.jackett = nil
+			}
+			w.WriteHeader(http.StatusOK)
+			w.Write([]byte(`{"status":"ok"}`))
+		}
 	case "enginedebug":
 		w.Header().Set("Content-Type", "application/json")
 		var buf bytes.Buffer
@@ -289,6 +321,13 @@ func (s *Server) apiConfigure(data []byte) error {
 		}
 		if status&engine.NeedUpdateRSS > 0 {
 			go s.updateRSS()
+		}
+		// Update Jackett client if config changed
+		if c.JackettURL != "" && c.JackettKey != "" {
+			s.jackett = NewJackettClient(c.JackettURL, c.JackettKey)
+			log.Printf("Jackett client updated via configure: %s", c.JackettURL)
+		} else {
+			s.jackett = nil
 		}
 		s.state.Push()
 

@@ -59,6 +59,10 @@
   <select ng-show="inputs.provider === 'jackett' && jackettIndexers.length > 0" class="ui tiny button" ng-model="inputs.jackettIndexer"
     ng-options="idx.id as idx.name for idx in jackettIndexers">
   </select>
+  <!-- Jackett config button -->
+  <div ng-click="toggleJackettConfig()" class="ui tiny grey button" title="Configure Jackett">
+    <i class="settings icon"></i>
+  </div>
   <div ng-hide="mode.rss" ng-click="submitSearch()" class="ui tiny blue button" ng-class="{loading: searching,
       disabled: noResults || hasMore && results && results.length > 0
     }">
@@ -67,6 +71,29 @@
   </div>
   <div ng-hide="!mode.rss" ng-click="get_rss(true)" class="ui tiny teal button" ng-class="{loading: searching||apiing}">
     <i class="redo icon"></i>Update Rss
+  </div>
+</div>
+
+<!-- JACKETT CONFIG PANEL -->
+<div ng-show="showJackettConfig" class="ui segment">
+  <h4 class="ui header">Jackett Configuration</h4>
+  <div class="ui form">
+    <div class="field">
+      <label>Jackett URL</label>
+      <input type="text" ng-model="jackettConfig.url" placeholder="http://localhost:9117">
+    </div>
+    <div class="field">
+      <label>API Key</label>
+      <input type="password" ng-model="jackettConfig.key" placeholder="Your Jackett API key">
+    </div>
+    <div class="ui buttons">
+      <div ng-click="saveJackettConfig()" class="ui primary button">Save</div>
+      <div ng-click="testJackettConfig()" class="ui button">Test</div>
+      <div ng-click="toggleJackettConfig()" class="ui button">Cancel</div>
+    </div>
+    <div ng-show="jackettConfigMessage" class="ui message" ng-class="jackettConfigMessage.type">
+      {{ jackettConfigMessage.text }}
+    </div>
   </div>
 </div>
 
