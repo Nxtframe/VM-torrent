@@ -110,12 +110,19 @@ func list(path string, info os.FileInfo, node *fsNode, n *uint) error {
 		return fmt.Errorf("ERROR: Failed to list files: %w", err)
 	}
 	node.Size = 0
+	seen := make(map[string]bool)
 	for _, i := range children {
 		c := &fsNode{}
 		p := filepath.Join(path, i.Name())
 		if err := list(p, i, c, n); err != nil {
+			log.Printf("File listing skipped %s: %s", p, err)
 			continue
 		}
+		if seen[c.Name] {
+			log.Printf("Duplicate file skipped: %s", p)
+			continue
+		}
+		seen[c.Name] = true
 		node.Size += c.Size
 		node.Children = append(node.Children, c)
 	}

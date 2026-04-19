@@ -7,6 +7,7 @@ import (
  	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -36,7 +37,12 @@ var convertJobs sync.Map
 // serveTranscode streams video transcoded via FFmpeg to MP4
 func (s *Server) serveTranscode(w http.ResponseWriter, r *http.Request) {
 	dldir := s.engineConfig.DownloadDirectory
-	filePath, err := filepath.Abs(filepath.Join(dldir, r.URL.Path))
+	// URL decode path for Japanese/special characters
+	decodedPath, err := url.PathUnescape(r.URL.Path)
+	if err != nil {
+		decodedPath = r.URL.Path
+	}
+	filePath, err := filepath.Abs(filepath.Join(dldir, decodedPath))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -378,6 +384,11 @@ func parseFFmpegTimeSeconds(line string) (float64, bool) {
 
 func (s *Server) safeAbsDownloadPath(relPath string) (abs string, dldir string, err error) {
 	dldir = s.engineConfig.DownloadDirectory
+	// URL decode for Japanese/special characters
+	decodedPath, decErr := url.PathUnescape(relPath)
+	if decErr == nil {
+		relPath = decodedPath
+	}
 	abs, err = filepath.Abs(filepath.Join(dldir, relPath))
 	if err != nil {
 		return "", dldir, err

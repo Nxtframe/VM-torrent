@@ -6,6 +6,9 @@ app.controller("DownloadsController", function ($scope, $rootScope, apiget) {
   $scope.$DownloadedFiles = [];
   apiget.files().then(function (xhr) {
     if (xhr.data.Children) {
+      console.log("Files API returned", xhr.data.Children.length, "items");
+      var names = xhr.data.Children.map(function(c) { return c.Name; });
+      console.log("File names:", names);
       $scope.$DownloadedFiles = xhr.data.Children;
     }
   });
@@ -17,6 +20,9 @@ app.controller("DownloadsController", function ($scope, $rootScope, apiget) {
       $scope.$isLoadingFiles = true;
       apiget.files().then(function (xhr) {
         if (xhr.data.Children) {
+          console.log("Files API (expand) returned", xhr.data.Children.length, "items");
+          var names = xhr.data.Children.map(function(c) { return c.Name; });
+          console.log("File names (expand):", names);
           $scope.$DownloadedFiles = xhr.data.Children;
         } else {
           $scope.$DownloadedFiles = [];

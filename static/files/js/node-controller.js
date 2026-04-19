@@ -18,25 +18,31 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
     return "play blue icon";
   };
 
-  var pathArray = [n.Name];
-  if ($scope.$parent && $scope.$parent.$parent && $scope.$parent.$parent.node) {
-    var parentNode = $scope.$parent.$parent.node;
-    pathArray.unshift(parentNode.$path);
-    n.$depth = parentNode.$depth + 1;
-  } else {
-    n.$depth = 1;
+  // Ensure Name is defined, fallback to empty string if missing
+  if (!n.Name) {
+    n.Name = "";
   }
+  // Build path by walking up scope chain to collect ancestor Names
+  // (don't rely on parent.$path which may not be set yet due to ng-repeat timing)
+  var pathArray = [n.Name];
+  var currentScope = $scope.$parent;
+  var depth = 1;
+  var seenNodes = new Set();
+  seenNodes.add(n);
+  while (currentScope) {
+    if (currentScope.node && currentScope.node.Name && !seenNodes.has(currentScope.node)) {
+      pathArray.unshift(currentScope.node.Name);
+      seenNodes.add(currentScope.node);
+      depth++;
+    }
+    currentScope = currentScope.$parent;
+  }
+  n.$depth = depth;
   var path = (n.$path = pathArray.join("/"));
   n.$closed = $scope.agoHrs(n.Modified) > 24;
   $scope.audioPreview = /\.(mp3|m4a)$/i.test(path);
   $scope.imagePreview = /\.(jpe?g|png|gif)$/i.test(path);
-  $scope.videoPreview = /\.(mp4|mkv|mov|mpeg|ts|avi|webm|ogv)$/i.test(path);
-
-  // Initialize conversion state on controller load (persists across page refresh)
-  if ($scope.videoPreview && $scope.needsTranscoding(n.Name)) {
-    $scope.checkCanConvert();
-    $scope.refreshConvertStatus();
-  }
+  $scope.videoPreview = /\.(mp4|mkv|mov|mpeg|ts|avi|webm|ogv|wmv)$/i.test(path);
 
   $scope.isdownloading = function (fileName) {
     if ($scope.isfile() && (fileName in $rootScope.DownloadingFiles)) {
@@ -114,7 +120,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
 
   // Check if file needs server-side transcoding
   $scope.needsTranscoding = function (filename) {
-    return /\.(ts|mpeg|mpg|mkv|avi|mov)$/i.test(filename);
+    return /\.(ts|mpeg|mpg|mkv|avi|mov|wmv)$/i.test(filename);
   };
 
   // Check if file can be converted (codecs compatible with MP4)
@@ -528,4 +534,15 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
       $scope.convertPoller = null;
     }
   };
+
+  // Initialize conversion state on controller load (persists across page refresh)
+  // Defer to ensure all functions are defined
+  if ($scope.videoPreview) {
+    $timeout(function () {
+      if ($scope.needsTranscoding(n.Name)) {
+        $scope.checkCanConvert();
+        $scope.refreshConvertStatus();
+      }
+    }, 0);
+  }
 });
