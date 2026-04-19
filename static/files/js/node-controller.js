@@ -27,14 +27,31 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
   }
   // Build path using explicit parentPath passed from templates.
   // This avoids relying on Angular scope chains (which can be ambiguous/inherited).
-  var parentPath = (typeof n.$parentPath === 'string') ? n.$parentPath : "";
-  var path = parentPath ? (parentPath + "/" + n.Name) : n.Name;
-  n.$path = path;
-  $scope.$path = path;
+  var path; // Closure variable accessible to all functions
+  var buildPath = function () {
+    var parentPath = (typeof n.$parentPath === 'string') ? n.$parentPath : "";
+    path = parentPath ? (parentPath + "/" + n.Name) : n.Name;
+    var isParent = !!n.Children;
+    if (parentPath) {
+      console.log('Child node - Name:', n.Name, 'isParent:', isParent, 'parentPath:', parentPath, 'final path:', path);
+    } else {
+      console.log('Root-level node - Name:', n.Name, 'isParent:', isParent, 'final path:', path);
+    }
+    n.$path = path;
+    $scope.$path = path;
+    $scope.audioPreview = /\.(mp3|m4a)$/i.test(path);
+    $scope.imagePreview = /\.(jpe?g|png|gif)$/i.test(path);
+    $scope.videoPreview = /\.(mp4|mkv|mov|mpeg|ts|avi|webm|ogv|wmv)$/i.test(path);
+  };
+  buildPath();
+
+  // Watch for parentPath changes (ng-init runs after controller)
+  $scope.$watch('node.$parentPath', function (newVal, oldVal) {
+    if (newVal !== oldVal) {
+      buildPath();
+    }
+  });
   n.$closed = $scope.agoHrs(n.Modified) > 24;
-  $scope.audioPreview = /\.(mp3|m4a)$/i.test(path);
-  $scope.imagePreview = /\.(jpe?g|png|gif)$/i.test(path);
-  $scope.videoPreview = /\.(mp4|mkv|mov|mpeg|ts|avi|webm|ogv|wmv)$/i.test(path);
 
   $scope.isdownloading = function (fileName) {
     if ($scope.isfile() && (fileName in $rootScope.DownloadingFiles)) {
