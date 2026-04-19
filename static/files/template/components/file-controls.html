@@ -1,9 +1,9 @@
 <span ng-if="!isdownloading(node.Name)" class="controls">
   <div class="action-group primary">
-    <a ng-if="isfile()" ng-href="download/{{ node.$path | escape }}" title="Download file">
+    <a ng-if="isfile()" ng-href="download/{{ $path | escape }}" title="Download file">
       <i class="download icon"></i>
     </a>
-    <a ng-if="!isfile()" ng-href="download/{{ node.$path | escape }}" title="Download folder">
+    <a ng-if="!isfile()" ng-href="download/{{ $path | escape }}" title="Download folder">
       <i class="file archive icon"></i>
     </a>
     <i ng-if="isfile() && videoPreview && showConvertButton()"

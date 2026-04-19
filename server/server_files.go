@@ -40,7 +40,13 @@ func (s *Server) listFiles() *fsNode {
 func (s *Server) serveDownloadFiles(w http.ResponseWriter, r *http.Request) {
 	//dldir is absolute
 	dldir := s.engineConfig.DownloadDirectory
-	file, err := filepath.Abs(filepath.Join(dldir, r.URL.Path))
+	// URL decode path so requests built with encodeURIComponent (and Unicode filenames)
+	// resolve to the correct filesystem path.
+	decodedPath, decErr := url.PathUnescape(r.URL.Path)
+	if decErr != nil {
+		decodedPath = r.URL.Path
+	}
+	file, err := filepath.Abs(filepath.Join(dldir, decodedPath))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return

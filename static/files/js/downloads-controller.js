@@ -10,6 +10,7 @@ app.controller("DownloadsController", function ($scope, $rootScope, apiget) {
       var names = xhr.data.Children.map(function(c) { return c.Name; });
       console.log("File names:", names);
       $scope.$DownloadedFiles = xhr.data.Children;
+      
     }
   });
 

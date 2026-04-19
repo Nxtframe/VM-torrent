@@ -1,6 +1,9 @@
 /* globals app */
 
 app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, reqerr) {
+  if (!$scope.node) {
+    $scope.node = {};
+  }
   var n = $scope.node;
   $scope.isfile = function () {
     return !n.Children;
@@ -19,26 +22,15 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
   };
 
   // Ensure Name is defined, fallback to empty string if missing
-  if (!n.Name) {
-    n.Name = "";
+  if (typeof n.Name !== 'string') {
+    n.Name = "NIGGA";
   }
-  // Build path by walking up scope chain to collect ancestor Names
-  // (don't rely on parent.$path which may not be set yet due to ng-repeat timing)
-  var pathArray = [n.Name];
-  var currentScope = $scope.$parent;
-  var depth = 1;
-  var seenNodes = new Set();
-  seenNodes.add(n);
-  while (currentScope) {
-    if (currentScope.node && currentScope.node.Name && !seenNodes.has(currentScope.node)) {
-      pathArray.unshift(currentScope.node.Name);
-      seenNodes.add(currentScope.node);
-      depth++;
-    }
-    currentScope = currentScope.$parent;
-  }
-  n.$depth = depth;
-  var path = (n.$path = pathArray.join("/"));
+  // Build path using explicit parentPath passed from templates.
+  // This avoids relying on Angular scope chains (which can be ambiguous/inherited).
+  var parentPath = (typeof n.$parentPath === 'string') ? n.$parentPath : "";
+  var path = parentPath ? (parentPath + "/" + n.Name) : n.Name;
+  n.$path = path;
+  $scope.$path = path;
   n.$closed = $scope.agoHrs(n.Modified) > 24;
   $scope.audioPreview = /\.(mp3|m4a)$/i.test(path);
   $scope.imagePreview = /\.(jpe?g|png|gif)$/i.test(path);
