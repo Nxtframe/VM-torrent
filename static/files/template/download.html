@@ -15,9 +15,22 @@
 	<p>DownloadDirectory empty</p>
 </div>
 
-<div ng-show="$DownloadedFiles.length > 0 && $expanded" class="ui raised segment">
-	<div class="ui list">
-		<div class="item" ng-repeat="node in $DownloadedFiles | orderBy:'Modified':false track by node.Name" ng-hide="node.$Deleted"
+<div ng-show="$DownloadedFiles.length > 0 && $expanded" class="ui raised segment download-list">
+	<div class="download-toolbar">
+		<div class="ui tiny buttons">
+			<button class="ui button" ng-class="{active: $downloadSortBy === 'Modified'}" ng-click="$downloadSortBy = 'Modified'; $downloadSortReverse = true">
+				<i class="clock icon"></i> Time
+			</button>
+			<button class="ui button" ng-class="{active: $downloadSortBy === 'Name'}" ng-click="$downloadSortBy = 'Name'; $downloadSortReverse = false">
+				<i class="font icon"></i> Name
+			</button>
+			<button class="ui button" ng-class="{active: $downloadSortBy === 'Size'}" ng-click="$downloadSortBy = 'Size'; $downloadSortReverse = true">
+				<i class="hdd icon"></i> Size
+			</button>
+		</div>
+	</div>
+	<div class="ui list folder-structure">
+		<div class="item" ng-repeat="node in $DownloadedFiles | orderBy:$downloadSortBy:$downloadSortReverse track by node.Name" ng-hide="node.$Deleted"
 			ng-init="node.$parentPath=''" ng-controller="NodeController" ng-include src="'template/download-tree.html'"></div>
 	</div>
 </div>

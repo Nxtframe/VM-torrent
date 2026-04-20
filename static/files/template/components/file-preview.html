@@ -1,8 +1,8 @@
 <div class="preview" ng-if="showPreview">
   <audio ng-if="audioPreview" controls>
-    <source ng-src="{{ showPreview ? ('download/'+node.$path) : '' }}">
+    <source ng-src="{{ showPreview ? ('download/'+node.Path) : '' }}">
   </audio>
-  <img ng-if="imagePreview" ng-src="{{ showPreview ? ('download/'+(node.$path | escape)) : '' }}">
+  <img ng-if="imagePreview" ng-src="{{ showPreview ? ('download/'+(node.Path | escape)) : '' }}">
 
   <!-- Plyr Video Player -->
   <div ng-if="videoPreview" class="plyr-player-container" ng-class="{'theater-active': theaterActive}">

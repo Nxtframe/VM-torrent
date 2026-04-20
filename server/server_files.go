@@ -21,6 +21,7 @@ const fileNumberLimit = 65535
 
 type fsNode struct {
 	Name     string
+	Path     string
 	Size     int64
 	Modified time.Time
 	Children []*fsNode
@@ -30,7 +31,7 @@ func (s *Server) listFiles() *fsNode {
 	rootDir := s.engineConfig.DownloadDirectory
 	root := &fsNode{}
 	if info, err := os.Stat(rootDir); err == nil {
-		if err := list(rootDir, info, root, new(uint)); err != nil {
+		if err := list(rootDir, info, root, new(uint), ""); err != nil {
 			log.Printf("File listing failed: %s", err)
 		}
 	}
@@ -97,7 +98,7 @@ func (s *Server) serveDownloadFiles(w http.ResponseWriter, r *http.Request) {
 
 //custom directory walk
 
-func list(path string, info os.FileInfo, node *fsNode, n *uint) error {
+func list(path string, info os.FileInfo, node *fsNode, n *uint, rel string) error {
 	if (!info.IsDir() && !info.Mode().IsRegular()) || strings.HasPrefix(info.Name(), ".") {
 		return errors.New("ERROR: Non-regular file")
 	}
@@ -106,6 +107,8 @@ func list(path string, info os.FileInfo, node *fsNode, n *uint) error {
 		return errors.New("ERROR: Over file limit") //limit number of files walked
 	}
 	node.Name = info.Name()
+	// rel is always slash-separated (URL-friendly)
+	node.Path = rel
 	node.Size = info.Size()
 	node.Modified = info.ModTime()
 	if !info.IsDir() {
@@ -120,7 +123,12 @@ func list(path string, info os.FileInfo, node *fsNode, n *uint) error {
 	for _, i := range children {
 		c := &fsNode{}
 		p := filepath.Join(path, i.Name())
-		if err := list(p, i, c, n); err != nil {
+		childRel := i.Name()
+		if rel != "" {
+			childRel = rel + "/" + childRel
+		}
+		childRel = filepath.ToSlash(childRel)
+		if err := list(p, i, c, n, childRel); err != nil {
 			log.Printf("File listing skipped %s: %s", p, err)
 			continue
 		}

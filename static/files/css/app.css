@@ -182,3 +182,282 @@ table.tcld .name {
 [ng-cloak] {
   display: none;
 }
+
+/* ====================
+   DARK MODE STYLES
+   ==================== */
+
+/* Dark mode toggle button */
+.dark-mode-toggle {
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: background 0.2s;
+}
+
+.dark-mode-toggle:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+/* Dark mode base styles */
+body.dark-mode {
+  background: #1a1a1a;
+  color: #e0e0e0;
+}
+
+body.dark-mode .cage {
+  background: #1a1a1a;
+}
+
+/* Dark mode title */
+body.dark-mode .title a {
+  color: #e0e0e0;
+}
+
+body.dark-mode .title .status .build-number {
+  color: #aaa;
+}
+
+/* Dark mode sections */
+body.dark-mode .ui.segment {
+  background: #2d2d2d;
+  border-color: #404040;
+  color: #e0e0e0;
+}
+
+body.dark-mode .ui.raised.segment {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+/* Dark mode torrent items */
+body.dark-mode .torrent-item {
+  background: #2d2d2d;
+  border-color: #404040;
+}
+
+body.dark-mode .torrent-item:hover {
+  background: #363636;
+}
+
+/* Dark mode downloads */
+body.dark-mode .downloads .file-card {
+  background: #2d2d2d;
+  border-color: #404040;
+  color: #e0e0e0;
+}
+
+body.dark-mode .downloads .file-card.is-file {
+  background: #2d2d2d;
+  border-left-color: #4a9eff;
+}
+
+body.dark-mode .downloads .file-card.is-folder {
+  background: linear-gradient(135deg, #3d3518 0%, #2d2d2d 100%);
+  border-left-color: #d4a017;
+}
+
+body.dark-mode .downloads .header a,
+body.dark-mode .downloads .header span {
+  color: #e0e0e0;
+}
+
+body.dark-mode .downloads .file-meta {
+  color: #999;
+}
+
+/* Dark mode toolbar */
+body.dark-mode .download-toolbar {
+  background: #363636;
+  border-color: #404040;
+}
+
+/* Dark mode folder structure */
+body.dark-mode .folder-structure .list {
+  border-left-color: #505050;
+}
+
+/* Dark mode download status */
+body.dark-mode .downloads .status-downloading {
+  color: #f39c12;
+}
+
+body.dark-mode .downloads .status-downloaded {
+  color: #2ecc71;
+}
+
+/* Dark mode folder toggle button */
+body.dark-mode .downloads .folder-toggle-btn {
+  background: rgba(240, 165, 0, 0.25);
+}
+
+body.dark-mode .downloads .folder-toggle-btn:hover {
+  background: rgba(240, 165, 0, 0.4);
+}
+
+body.dark-mode .downloads .folder-toggle-btn i {
+  color: #f0a500;
+}
+
+/* Dark mode inputs */
+body.dark-mode .ui.input input {
+  background: #363636;
+  border-color: #505050;
+  color: #e0e0e0;
+}
+
+body.dark-mode .ui.input input::placeholder {
+  color: #888;
+}
+
+/* Dark mode buttons */
+body.dark-mode .ui.button {
+  background: #404040;
+  color: #e0e0e0;
+  border-color: #505050;
+}
+
+body.dark-mode .ui.button:hover {
+  background: #505050;
+}
+
+body.dark-mode .ui.buttons .button.active {
+  background: #2185d0;
+}
+
+/* Dark mode labels */
+body.dark-mode .ui.label {
+  background: #404040;
+  color: #e0e0e0;
+  border-color: #505050;
+}
+
+/* Dark mode messages */
+body.dark-mode .ui.message {
+  background: #363636;
+  color: #e0e0e0;
+  border-color: #505050;
+}
+
+body.dark-mode .ui.message.nodownloads {
+  background: #2d2d2d;
+  color: #888;
+}
+
+/* Dark mode table */
+body.dark-mode .ui.table {
+  background: #2d2d2d;
+  color: #e0e0e0;
+  border-color: #404040;
+}
+
+body.dark-mode .ui.table th {
+  background: #363636;
+  color: #e0e0e0;
+}
+
+body.dark-mode .ui.table td {
+  border-color: #404040;
+}
+
+/* Dark mode progress bars */
+body.dark-mode .ui.progress {
+  background: #363636;
+}
+
+body.dark-mode .ui.progress .bar {
+  background: #2185d0;
+}
+
+/* Dark mode dropdown */
+body.dark-mode .ui.dropdown .menu {
+  background: #2d2d2d;
+  border-color: #404040;
+}
+
+body.dark-mode .ui.dropdown .item {
+  color: #e0e0e0;
+}
+
+body.dark-mode .ui.dropdown .item:hover {
+  background: #404040;
+}
+
+/* Dark mode config panel */
+body.dark-mode .config form.edit input {
+  background: #363636;
+  border-color: #505050;
+  color: #e0e0e0;
+}
+
+body.dark-mode .config form.edit textarea {
+  background: #363636;
+  border-color: #505050;
+  color: #e0e0e0;
+}
+
+/* Dark mode footer */
+body.dark-mode footer {
+  color: #666;
+}
+
+/* Dark mode toggle icon color */
+body.dark-mode .dark-mode-toggle {
+  color: #e0e0e0;
+}
+
+body.dark-mode .dark-mode-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* Dark mode section headers */
+body.dark-mode .section-header {
+  color: #e0e0e0;
+}
+
+body.dark-mode .section-header:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Dark mode omni panel */
+body.dark-mode .omni .panel {
+  background: #2d2d2d;
+  border-color: #404040;
+}
+
+/* Dark mode icon colors */
+body.dark-mode .blue.icon {
+  color: #4a9eff !important;
+}
+
+body.dark-mode .green.icon {
+  color: #4caf50 !important;
+}
+
+body.dark-mode .orange.icon {
+  color: #ff9800 !important;
+}
+
+body.dark-mode .red.icon {
+  color: #f44336 !important;
+}
+
+/* Dark mode modal */
+body.dark-mode .ui.modal {
+  background: #2d2d2d;
+}
+
+body.dark-mode .ui.modal > .header {
+  background: #363636;
+  color: #e0e0e0;
+  border-color: #404040;
+}
+
+body.dark-mode .ui.modal > .content {
+  background: #2d2d2d;
+  color: #e0e0e0;
+}
+
+body.dark-mode .ui.modal > .actions {
+  background: #363636;
+  border-color: #404040;
+}

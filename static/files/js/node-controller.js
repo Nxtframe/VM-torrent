@@ -25,37 +25,66 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
   if (typeof n.Name !== 'string') {
     n.Name = "NIGGA";
   }
-  // Build path using explicit parentPath passed from templates.
-  // This avoids relying on Angular scope chains (which can be ambiguous/inherited).
-  var path; // Closure variable accessible to all functions
-  var buildPath = function () {
-    var parentPath = (typeof n.$parentPath === 'string') ? n.$parentPath : "";
-    path = parentPath ? (parentPath + "/" + n.Name) : n.Name;
-    var isParent = !!n.Children;
-    if (parentPath) {
-      console.log('Child node - Name:', n.Name, 'isParent:', isParent, 'parentPath:', parentPath, 'final path:', path);
-    } else {
-      console.log('Root-level node - Name:', n.Name, 'isParent:', isParent, 'final path:', path);
+  // Build path by finding the nearest ancestor scope that has a different node.
+  // This is resilient to extra scopes created by ng-include/ng-repeat.
+  var findParentNode = function () {
+    var s = $scope.$parent;
+    while (s) {
+      if (s.node && s.node !== n) {
+        return s.node;
+      }
+      s = s.$parent;
     }
-    n.$path = path;
-    $scope.$path = path;
-    $scope.audioPreview = /\.(mp3|m4a)$/i.test(path);
-    $scope.imagePreview = /\.(jpe?g|png|gif)$/i.test(path);
-    $scope.videoPreview = /\.(mp4|mkv|mov|mpeg|ts|avi|webm|ogv|wmv)$/i.test(path);
+    return null;
   };
-  buildPath();
 
-  // Watch for parentPath changes (ng-init runs after controller)
-  $scope.$watch('node.$parentPath', function (newVal, oldVal) {
-    if (newVal !== oldVal) {
-      buildPath();
-    }
-  });
-  n.$closed = $scope.agoHrs(n.Modified) > 24;
+  var parentNode = findParentNode();
+  var parentPath = (parentNode && typeof parentNode.$path === 'string') ? parentNode.$path : "";
+  var path = parentPath ? (parentPath + "/" + n.Name) : n.Name;
+
+  n.$path = path;
+  $scope.$path = path;
+  n.$depth = (parentNode && typeof parentNode.$depth === 'number') ? (parentNode.$depth + 1) : 1;
+  $scope.audioPreview = /\.(mp3|m4a)$/i.test(path);
+  $scope.imagePreview = /\.(jpe?g|png|gif)$/i.test(path);
+  $scope.videoPreview = /\.(mp4|mkv|mov|mpeg|ts|avi|webm|ogv|wmv)$/i.test(path);
+  n.$closed = true;  // Always start folders closed
 
   $scope.isdownloading = function (fileName) {
-    if ($scope.isfile() && (fileName in $rootScope.DownloadingFiles)) {
+    if (!$scope.isfile()) {
+      return false
+    }
+
+    // Prefer full relative path match when available
+    if (typeof n.$path === 'string' && (n.$path in $rootScope.DownloadingFiles)) {
       return true
+    }
+    // Fallback to base name
+    if (fileName in $rootScope.DownloadingFiles) {
+      return true
+    }
+    return false
+  }
+
+  $scope.hasDownloadingChildren = function () {
+    // For a file, it's just itself
+    if ($scope.isfile()) {
+      return $scope.isdownloading(n.Name)
+    }
+
+    // For a folder, if any downloading file path starts with this folder path, mark downloading
+    if (typeof n.$path !== 'string' || !n.$path) {
+      return false
+    }
+    var folderPrefix = n.$path.replace(/\\/g, "/")
+    for (var k in $rootScope.DownloadingFiles) {
+      if (!Object.prototype.hasOwnProperty.call($rootScope.DownloadingFiles, k)) continue
+      if (typeof k !== 'string') continue
+
+      var key = k.replace(/\\/g, "/")
+      if (key.indexOf(folderPrefix + "/") === 0) {
+        return true
+      }
     }
     return false
   }
@@ -96,7 +125,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
 
   $scope.remove = function (node) {
     $scope.deleting = true;
-    $http.delete("download/" + encodeURIComponent(node.$path))
+    $http.delete("download/" + encodeURIComponent(node.Path))
       .then(function () {
         node.$Deleted = true;
         $scope.$applyAsync();
@@ -138,7 +167,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
       $scope.canConvertInfo = { canConvert: false };
       return;
     }
-    $http.get('api/canconvert?path=' + encodeURIComponent(n.$path))
+    $http.get('api/canconvert?path=' + encodeURIComponent(n.Path))
       .then(function (xhr) {
         $scope.canConvertInfo = xhr.data;
       })
@@ -157,7 +186,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
 
   // Get video URL - direct or transcoded
   $scope.getVideoUrl = function () {
-    var encodedPath = encodeURIComponent(n.$path);
+    var encodedPath = encodeURIComponent(n.Path);
     if ($scope.useConvertedFile && $scope.convert && $scope.convert.state === 'done' && $scope.convert.cacheRel) {
       return 'download/' + $scope.convert.cacheRel;
     }
@@ -169,7 +198,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
 
   $scope.refreshConvertStatus = function () {
     if (!$scope.videoPreview) return;
-    $http.get('api/convertstatus?path=' + encodeURIComponent(n.$path))
+    $http.get('api/convertstatus?path=' + encodeURIComponent(n.Path))
       .then(function (xhr) {
         $scope.convert = {
           state: xhr.data.state,
@@ -194,7 +223,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
   $scope.startConvert = function () {
     $scope.useConvertedFile = false;
     $scope.convert = { state: 'running', progress: 0 };
-    $http.post('api/convert?path=' + encodeURIComponent(n.$path), '')
+    $http.post('api/convert?path=' + encodeURIComponent(n.Path), '')
       .then(function () {
         $scope.pollConvert();
       })
@@ -210,7 +239,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
         $scope.convertPoller = null;
         return;
       }
-      $http.get('api/convertstatus?path=' + encodeURIComponent(n.$path))
+      $http.get('api/convertstatus?path=' + encodeURIComponent(n.Path))
         .then(function (xhr) {
           $scope.convert = {
             state: xhr.data.state,
@@ -386,7 +415,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
 
   $scope.hasSubtitles = function () {
     // Check if a subtitle file exists (.srt, .vtt, .ass, .ssa) with same name
-    var basePath = n.$path.replace(/\.[^/.]+$/, "");
+    var basePath = n.Path.replace(/\.[^/.]+$/, "");
     var parent = $scope.$parent.$parent;
     if (!parent || !parent.node || !parent.node.Children) return false;
     
@@ -445,7 +474,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
 
     var currentIndex = -1;
     for (var i = 0; i < siblings.length; i++) {
-      if (siblings[i].$path === n.$path) {
+      if (siblings[i].Path === n.Path) {
         currentIndex = i;
         break;
       }
@@ -479,7 +508,7 @@ app.controller("NodeController", function ($scope, $rootScope, $http, $timeout, 
     // Find the scope of the next node
     var childScopes = $scope.$parent.$$childHead;
     while (childScopes) {
-      if (childScopes.node && childScopes.node.$path === nextNode.$path) {
+      if (childScopes.node && childScopes.node.Path === nextNode.Path) {
         nextScope = childScopes;
         break;
       }

@@ -77,6 +77,11 @@ type Server struct {
 	//torrent engine
 	engine *engine.Engine
 
+	//transfer stats
+	statsFilePath string
+	lastTotalDownloaded int64
+	lastTotalUploaded   int64
+
 	//sync req
 	syncConnected chan struct{}
 	syncWg        sync.WaitGroup
@@ -89,8 +94,9 @@ type Server struct {
 		Torrents      *map[string]*engine.Torrent
 		Users         map[string]struct{}
 		Stats         struct {
-			System   osStats
-			ConnStat torrent.ConnStats
+			System       osStats
+			ConnStat     torrent.ConnStats
+			TransferStat TransferStats
 		}
 	}
 
@@ -198,6 +204,23 @@ func (s *Server) Run(tpl *TPLInfo) error {
 	s.state.UseQueue = (c.MaxConcurrentTask > 0)
 	s.engineConfig = c
 	s.tpl.AllowRuntimeConfigure = c.AllowRuntimeConfigure
+
+	// Initialize transfer stats file path
+	s.statsFilePath = path.Join(c.DownloadDirectory, ".transfer_stats.json")
+
+	// Load transfer stats from file
+	stats, err := LoadTransferStats(s.statsFilePath)
+	if err != nil {
+		log.Printf("[server] Failed to load transfer stats: %v", err)
+		stats = &TransferStats{TotalDownloadedBytes: 0, TotalUploadedBytes: 0}
+	} else {
+		log.Printf("[server] Transfer stats loaded - Total Downloaded: %.2f MB, Total Uploaded: %.2f MB",
+			stats.ToMB(stats.TotalDownloadedBytes), stats.ToMB(stats.TotalUploadedBytes))
+	}
+	s.state.Stats.TransferStat = *stats
+	s.lastTotalDownloaded = 0
+	s.lastTotalUploaded = 0
+
 	if err := s.engine.Configure(c); err != nil {
 		return err
 	}

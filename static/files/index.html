@@ -48,6 +48,8 @@
 				[[ end ]]
 				<i ng-click="toggleSections('omni')" ng-class="{green: $root.omni.edit}" title="Edit Magnet/Torrent"
 					class="ui circular magnet icon"></i>
+				<i ng-click="$root.toggleDarkMode()" title="Toggle Dark Mode"
+					class="ui circular dark-mode-toggle icon" ng-class="{sun: $root.darkMode, moon: !$root.darkMode}"></i>
 				<i class="ui circular icon" title="Connecting Status" ng-click="toggleWebsocket()"
 					ng-class="{ green: connected, red: !connected, retweet: storage.veloxCON=='ws', lightning: storage.veloxCON!='ws' }"></i>
 			</div>

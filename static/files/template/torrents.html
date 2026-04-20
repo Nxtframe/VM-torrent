@@ -5,8 +5,13 @@
       Torrents ({{ numKeys(state.Torrents) }})
       <span class="ui label">
         <i class="list icon"></i>
-        ▲: {{ state.Stats.ConnStat.BytesWrittenData | bytes }}
+        Session ▲: {{ state.Stats.ConnStat.BytesWrittenData | bytes }}
         ▼: {{ state.Stats.ConnStat.BytesReadUsefulData | bytes }}
+      </span>
+      <span class="ui label">
+        <i class="database icon"></i>
+        Total ▲: {{ (state.Stats.TransferStat.total_uploaded_bytes || 0) | bytes }}
+        ▼: {{ (state.Stats.TransferStat.total_downloaded_bytes || 0) | bytes }}
       </span>
     </span>
   </div>

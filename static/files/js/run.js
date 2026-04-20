@@ -45,17 +45,40 @@ app.run(function ($rootScope, $window, $location, $log, search, api, apiget, sto
 
     angular.forEach(newobj, function (tval) {
       angular.forEach(tval.Files, function (fval) {
-        if (fval.Percent < 100) {
-          var base = fval.Path.split(/[\\/]/).pop()
-          $scope.DownloadingFiles[base] = true;
+        var isDone = (typeof fval.Done === 'boolean') ? fval.Done : (fval.Percent >= 100)
+        if (!isDone) {
+          var normPath = (fval.Path || "").replace(/\\/g, "/")
+          var base = normPath.split("/").pop()
+          if (base) {
+            $scope.DownloadingFiles[base] = true;
+          }
+          if (normPath) {
+            $scope.DownloadingFiles[normPath] = true;
+          }
         }
       });
     });
   }, true)
-  //expose services
+  // expose services
   $scope.search = search;
   $scope.api = api;
   $scope.storage = storage;
+
+  // Dark mode functionality
+  $scope.darkMode = storage.darkMode === 'true';
+  if ($scope.darkMode) {
+    document.body.classList.add('dark-mode');
+  }
+
+  $scope.toggleDarkMode = function() {
+    $scope.darkMode = !$scope.darkMode;
+    storage.darkMode = $scope.darkMode.toString();
+    if ($scope.darkMode) {
+      document.body.classList.add('dark-mode');
+    } else {
+      document.body.classList.remove('dark-mode');
+    }
+  };
 
   $scope.ready = function (f) {
     var path = typeof f === "object" ? f.path : f;

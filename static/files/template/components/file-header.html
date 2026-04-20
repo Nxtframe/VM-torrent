@@ -1,4 +1,7 @@
 <div class="header">
+  <span ng-if="!isfile()" class="folder-toggle-btn" ng-click="toggle()" title="Expand/Collapse">
+    <i class="icon" ng-class="{caret: true, down: closed(), right: !closed()}"></i>
+  </span>
   <a ng-if="!isfile()" ng-click="toggle()">{{ node.Name }}</a>
   <span ng-if="isfile()">{{ node.Name }}</span>
 </div>

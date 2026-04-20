@@ -1,4 +1,4 @@
-<div class="file-card">
+<div class="file-card" ng-class="{'is-folder': isdir(), 'is-file': isfile()}">
   <div class="file-card-main">
     <div class="file-icon">
       <div ng-include src="'template/components/file-icon.html'"></div>
@@ -7,6 +7,8 @@
     <div class="file-details">
       <div class="file-name-row">
         <div ng-include src="'template/components/file-header.html'"></div>
+      </div>
+      <div class="file-meta-row">
         <div ng-include src="'template/components/file-metadata.html'"></div>
       </div>
       <div ng-include src="'template/components/file-preview.html'"></div>
@@ -17,5 +19,8 @@
     </div>
   </div>
 
-  <div ng-include src="'template/components/file-children.html'"></div>
+  <div class="list" ng-if="isdir() && !closed()">
+    <div class="item" ng-repeat="node in node.Children | orderBy:$root.$downloadSortBy:$root.$downloadSortReverse" ng-controller="NodeController"
+      ng-hide="node.$Deleted" ng-include src="'template/download-tree.html'"></div>
+  </div>
 </div>

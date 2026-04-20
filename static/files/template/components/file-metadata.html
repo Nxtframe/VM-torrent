@@ -1,1 +1,1 @@
-<div class="file-meta">{{ node.Size | bytes }} • {{ ago(node.Modified) }}</div>
+<div class="file-meta">{{ node.Size | bytes }} • {{ ago(node.Modified) }} • <span ng-if="hasDownloadingChildren()" class="status-downloading">Downloading</span><span ng-if="!hasDownloadingChildren()" class="status-downloaded">Downloaded</span></div>
